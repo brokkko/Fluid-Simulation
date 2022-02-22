@@ -4,13 +4,12 @@
 
 double f(double i)
 {
-    double a = 1;
+    double a = 5;
     return a * i;
-
 }
 
 double h(double U1, double U2) {
-    return 0.5 * (f(U1) + f(U2));
+    return 0.5 * (f(U1) + f(U2)-5*(U1-U2));
 }
 
 double slopeU(double* arr, int i)
@@ -64,8 +63,8 @@ void show(double* arr, int size, sf::RenderWindow& window) {
 
     for (int i = 0; i < size-1; i++)
     {
-        line[0] = sf::Vertex(sf::Vector2f(double(i*1)-500, arr[i]));    
-        line[1] = sf::Vertex(sf::Vector2f(double((i+1) * 1-500), arr[i+1]));
+        line[0] = sf::Vertex(sf::Vector2f(double(i*1)-500, -arr[i]));    
+        line[1] = sf::Vertex(sf::Vector2f(double((i+1) * 1-500), -arr[i+1]));
         window.draw(line, 2, sf::Lines);
     }
     
@@ -81,9 +80,10 @@ int main()
     
     for(int i = 0; i<arraySize; i++){
         dataArray[i] = 0.0;
+        if (i < 100) dataArray[i] = 50-abs(50-i);
     }
-    dataArray[20] = 50;
-    dataArray[80] = 50;
+   // dataArray[20] = 50;
+    //dataArray[80] = 50;
     double h = 0.1;
     sf::View w;
     w = window.getDefaultView();
@@ -99,7 +99,7 @@ int main()
         }
         window.clear(sf::Color::Black);
         solve(dataArray, arraySize, h);
-        std::cout << dataArray[5] << "\n";
+       // std::cout << dataArray[5] << "\n";
         show(dataArray, arraySize, window);
 
         window.display();
