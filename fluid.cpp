@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
+#include "sphere.h"
 
 // dU/dt = a*dU/dx
 
@@ -10,34 +11,36 @@
 struct Cell
 {
     double val;
+    double vx;
+    double vy;
 
     Cell operator+(const Cell r) const
     {
-        return Cell{ val + r.val };
+        return Cell{ val + r.val ,vx + r.vx,vy + r.vy};
     }
     Cell operator-(const Cell r) const
     {
-        return Cell{ val - r.val };
+        return Cell{ val - r.val ,vx - r.vx,vy - r.vy};
     }
     Cell operator*(const Cell r) const
     {
-        return Cell{ val * r.val };
+        return Cell{ val * r.val ,vx * r.vx,vy * r.vy};
     }
     Cell operator/(const Cell r) const
     {
-        return Cell{ val / r.val };
+        return Cell{ val / r.val ,vx / r.vx,vy / r.vy};
     }
     Cell operator*(const double r) const
     {
-        return Cell{ val * r };
+        return Cell{ val * r ,vx*r,vy*r};
     }
     Cell operator/(const double r) const
     {
-        return Cell{ val / r };
+        return Cell{ val / r ,vx/r,vy/r};
     }
     friend Cell operator*(const double l, const Cell r)
     {
-        return { l * r.val };
+        return { l * r.val ,l*r.vx,l*r.vy};
     }
 };
 
@@ -57,12 +60,12 @@ struct Grid
             mesh[i] = new Cell[sizeY+1];
         }
         for (int i=0; i<sizeX+1; i++){
-            mesh[i][0] = {0};
+            mesh[i][0] = {0,0,0};
         }
         for (int i=0; i<sizeY+1; i++){
-            mesh[0][i] = {0};
+            mesh[0][i] = {0,0,0};
         }
-        fluxMesh=0;
+        fluxMesh= nullptr;
     }
     void fluxMeshInit()
     {
@@ -71,17 +74,21 @@ struct Grid
             fluxMesh[i] = new Cell[sizeY+1];
         }
         for (int i=0; i<sizeX+1; i++){
-            fluxMesh[i][0] = {0};
+            fluxMesh[i][0] = {0,0,0};
         }
         for (int i=0; i<sizeY+1; i++){
-            fluxMesh[0][i] = {0};
+            fluxMesh[0][i] = {0,0,0};
         }
     }
     void Fill(double v)
     {
         for (int i = 0; i < sizeX + 1; i++){
             for(int j=0; j < sizeY + 1; j++){
-                mesh[i][j] = {v};
+                mesh[i][j] = {v,(1-(double)i/sizeX)*50,((double)i/sizeX)*50};
+               // if (j<50 && i < 50) {mesh[i][j].vx=0;mesh[i][j].vy=30;}
+                //if (j>50 && i < 50) {mesh[i][j].vx=30;mesh[i][j].vy=0;}
+               // if (j>50 && i > 50) {mesh[i][j].vx=0;mesh[i][j].vy=-30;}
+               // if (j<50 && i > 50) {mesh[i][j].vx=-30;mesh[i][j].vy=0;}
             }
         }
     }
@@ -112,8 +119,12 @@ struct Grid
 // ospre flux limiter
 Cell SlopeLim(Cell r)
 {
-    return {std::max(0.0,std::max(std::min(2*r.val,1.0),std::min(r.val,2.0)))};
-   // return {std::max(0.0, std::min(1.0, r.val))};
+   /* return {std::max(0.0,std::max(std::min(2*r.val,1.0),std::min(r.val,2.0))),
+            std::max(0.0,std::max(std::min(2*r.vx,1.0),std::min(r.vx,2.0))),
+            std::max(0.0,std::max(std::min(2*r.vy,1.0),std::min(r.vy,2.0)))};*/
+    return {std::max(0.0, std::min(1.0, r.val)),
+            std::max(0.0, std::min(1.0, r.vx)),
+            std::max(0.0, std::min(1.0, r.vy))};
     /*if (r.val > 0)
         return Cell{ 1.5 * (r.val * r.val + r.val) / (r.val * r.val + r.val + 1) };
     return Cell{ 0 };*/
@@ -121,13 +132,7 @@ Cell SlopeLim(Cell r)
 
 }
 
-Cell F(Cell dudx,Cell dudy)
-{
-    // dU/dt = U(dv/dx+dv/dy)
-    double a = 5;
 
-    return (dudy) * a;
-}
 
 //one vastd::absble !!
 Cell nonZeroDenom(Cell denom)
@@ -135,67 +140,104 @@ Cell nonZeroDenom(Cell denom)
     if (std::abs(denom.val) < __DBL_EPSILON__)
     {
         if (denom.val < 0)
-            return {-__DBL_EPSILON__};
+            denom.val=-__DBL_EPSILON__;
         else
-            return {__DBL_EPSILON__};
+            denom.val=__DBL_EPSILON__;
+    }
+    if (std::abs(denom.vx) < __DBL_EPSILON__)
+    {
+        if (denom.vx < 0)
+            denom.vx=-__DBL_EPSILON__;
+        else
+            denom.vx=__DBL_EPSILON__;
+    }
+    if (std::abs(denom.vy) < __DBL_EPSILON__)
+    {
+        if (denom.vy < 0)
+            denom.vy=-__DBL_EPSILON__;
+        else
+            denom.vy=__DBL_EPSILON__;
     }
     return denom;
 }
+
+Cell F(Cell dudx,Cell dudy)
+{
+    // dU/dt = U(dv/dx+dv/dy)
+    double a = 1;
+    return Cell{(dudx.val*dudx.vx+dudy.val*dudy.vy), dudx.val,dudy.val} * a;
+}
+
 
 void CalculateFlux(Grid& out, Grid& in)
 {
     //|  E  |  P  |  W  |
     //      e     p
     //in.Print();
-    for(int y = 2; y < in.sizeY; y++){
-        for (int x = 2; x < in.sizeX; x++) // 2->n ??
+    for(int y = 0; y < in.sizeY; y++){
+        unsigned int y_1= (y-1+in.sizeY)%(int)in.sizeY;
+        unsigned int y1= (y+1+in.sizeY)%(int)in.sizeY;
+        unsigned int y_2= (y-2+in.sizeY)%(int)in.sizeY;
+        for (int x = 0; x < in.sizeX; x++) // 2->n ??
         {
             //r_i= (u{i} - u{i-1}) / (u{i+1}-u{i})   r_P = (P - E) / (W - P)
-            auto rx_current = (in.mesh[x][y]     - in.mesh[x - 1][y]) / nonZeroDenom(in.mesh[x + 1][y] - in.mesh[x][y]);
-            auto rx_prev =    (in.mesh[x - 1][y] - in.mesh[x - 2][y]) / nonZeroDenom(in.mesh[x][y] - in.mesh[x - 1][y]);
+            unsigned int x_1= (x-1+in.sizeX)%(int)in.sizeX;
+            unsigned int x1= (x+1+in.sizeX)%(int)in.sizeX;
+            unsigned int x_2= (x-2+in.sizeX)%(int)in.sizeX;
 
-            auto ry_current = (in.mesh[x][y]     - in.mesh[x][y - 1]) / nonZeroDenom(in.mesh[x][y + 1] - in.mesh[x][y]);
-            auto ry_prev =    (in.mesh[x][y - 1] - in.mesh[x][y - 2]) / nonZeroDenom(in.mesh[x][y] - in.mesh[x][y - 1]);
+
+
+            auto rx_current = (in.mesh[x][y]     - in.mesh[x_1][y]) / nonZeroDenom( in.mesh[x1][y]- in.mesh[x][y]);
+            auto rx_prev =    (in.mesh[x_1][y] - in.mesh[x_2][y]) / nonZeroDenom(in.mesh[x][y] - in.mesh[x_1][y]);
+
+            auto ry_current = (in.mesh[x][y]     - in.mesh[x][y_1]) / nonZeroDenom(in.mesh[x][y1] - in.mesh[x][y]);
+            auto ry_prev =    (in.mesh[x][y_1] - in.mesh[x][y_2]) / nonZeroDenom(in.mesh[x][y] - in.mesh[x][y_1]);
             //uL{i-0.5} = u{i-1} + 0.5 * phi(r{i-1}) * (u{i} - u{i - 1})
             //uL{P} = E + 0.5 * phi * (P - E)
             //uR{i-0.5} = u{i} - 0.5 * phi(r{i}) * (u{i+1} - u{i})
             //uR{P} = P - 0.5 * phi * (W - P)
             //phi - slope limiter
-            auto uL_x = in.mesh[x - 1][y] + 0.5 * SlopeLim(rx_prev) * (in.mesh[x][y] - in.mesh[x - 1][y]);
-            auto uR_x = in.mesh[x][y]     - 0.5 * SlopeLim(rx_current)   * (in.mesh[x + 1][y] - in.mesh[x][y]);
+            auto uL_x = in.mesh[x_1][y] + 0.5 * SlopeLim(rx_prev) * (in.mesh[x][y] - in.mesh[x_1][y]);
+            auto uR_x = in.mesh[x][y]     - 0.5 * SlopeLim(rx_current)   * (in.mesh[x1][y] - in.mesh[x][y]);
 
-            auto uL_y = in.mesh[x][y - 1] + 0.5 * SlopeLim(ry_prev) * (in.mesh[x][y] - in.mesh[x][y - 1]);
-            auto uR_y = in.mesh[x][y]     - 0.5 * SlopeLim(ry_current)   * (in.mesh[x][y + 1] - in.mesh[x][y]);
+            auto uL_y = in.mesh[x][y_1] + 0.5 * SlopeLim(ry_prev) * (in.mesh[x][y] - in.mesh[x][y_1]);
+            auto uR_y = in.mesh[x][y]     - 0.5 * SlopeLim(ry_current)   * (in.mesh[x][y1] - in.mesh[x][y]);
 
             //eigenvalues? -> max speed a
-            double a = 5;
+            double a = 40;
             // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
-            out.mesh[x][y] =  (  0.5 * (F(uR_x, uR_x) + F(uL_x, uL_x) - a * (uR_x - uL_x)));
-            out.fluxMesh[x][y] = (0.5 * (F(uR_y, uR_y) + F(uL_y, uL_y) - a * (uR_y - uL_y)));
+            out.mesh[x][y] =  (  0.5 * (F(uR_x, {0,0,0}) + F(uL_x, {0,0,0}) - a * (uR_x - uL_x)));
+            out.fluxMesh[x][y] = (0.5 * (F({0,0,0}, uR_y) + F({0,0,0}, uL_y) - a * (uR_y - uL_y)));
 
         }
-        out.mesh[0][y] = { 0 };
-        out.mesh[1][y] = { 0 };
-        out.fluxMesh[0][y] = { 0 };
-        out.fluxMesh[1][y] = { 0 };
-        out.mesh[in.sizeX][y] = { 0 };
-        out.fluxMesh[in.sizeX][y] = { 0 };
+       /* out.mesh[0][y] = { 0,0,0 };
+        out.mesh[1][y] = { 0,0,0 };
+        out.fluxMesh[0][y] = { 0,0,0 };
+        out.fluxMesh[1][y] = { 0,0,0 };
+        out.mesh[in.sizeX][y] = { 0 ,0,0};
+        out.fluxMesh[in.sizeX][y] = { 0 ,0,0};*/
     }
-    out.mesh[in.sizeX][0] = { 0 };
-    out.mesh[in.sizeX][1] = { 0 };
-    out.fluxMesh[in.sizeX][0] = { 0 };
-    out.fluxMesh[in.sizeX][1] = { 0 };
+    /*out.mesh[in.sizeX][0] = { 0,0,0 };
+    out.mesh[in.sizeX][1] = { 0,0,0 };
+    out.fluxMesh[in.sizeX][0] = { 0 ,0,0};
+    out.fluxMesh[in.sizeX][1] = { 0,0,0 };
     for (int x = 0; x < in.sizeX+1; x++) {
-        out.mesh[x][0] = { 0 };
-        out.mesh[x][1] = { 0 };
-        out.fluxMesh[x][0] = { 0 };
-        out.fluxMesh[x][1] = { 0 };
-        out.mesh[x][in.sizeY] = { 0 };
-        out.fluxMesh[x][in.sizeY] = { 0 };
+        out.mesh[x][0] = { 0,0,0 };
+        out.mesh[x][1] = { 0 ,0,0};
+        out.fluxMesh[x][0] = { 0,0,0 };
+        out.fluxMesh[x][1] = { 0,0,0 };
+        out.mesh[x][in.sizeY] = { 0 ,0,0};
+        out.fluxMesh[x][in.sizeY] = { 0 ,0,0};
 
-    }
+    }*/
 }
 
+Cell S(int x,int y,Cell val)
+{
+    if (x>0 && x<3 && y>40 && y< 60)
+        return {1000,0,0};
+    else return {0,0,0};
+}
 
 void RKIntegrator(Grid& grid, double dt)
 {
@@ -209,21 +251,26 @@ void RKIntegrator(Grid& grid, double dt)
     CalculateFlux(flux,grid);
     //flux.Print();
     Grid k(grid.sizeX,grid.sizeY);
-    for (int y = 1; y < grid.sizeY; y++)
+    for (int y = 0; y < grid.sizeY; y++)
     {
-        for (int x = 1; x < grid.sizeX; x++)
+        unsigned int y1= (y+1+grid.sizeY)%(int)grid.sizeY;
+        for (int x = 0; x < grid.sizeX; x++)
         {
-            k.mesh[x][y] = grid.mesh[x][y] - 0.5 * dt / dx * (flux.mesh[x + 1][y]+ flux.fluxMesh[x][y + 1] - flux.mesh[x][y] - flux.fluxMesh[x][y]);
+            unsigned int x1= (x+1+grid.sizeX)%(int)grid.sizeX;
+            k.mesh[x][y] = grid.mesh[x][y] - 0.5 * dt / dx * (flux.mesh[x1][y]+ flux.fluxMesh[x][y1] - flux.mesh[x][y] - flux.fluxMesh[x][y]) +0.5*dt * S(x,y,grid.mesh[x][y]);
         }
         //grid.mesh[grid.sizeX-1][y]={0};
     }
     CalculateFlux(flux, k);
-    for (int y = 1; y < grid.sizeY; y++)
+    for (int y = 0; y < grid.sizeY; y++)
     {
-        for (int x = 1; x < grid.sizeX; x++)
+        unsigned int y1= (y+1+grid.sizeY)%(int)grid.sizeY;
+        for (int x = 0; x < grid.sizeX; x++)
         {
-            grid.mesh[x][y] = grid.mesh[x][y] - dt / dx * (flux.mesh[x + 1][y]+ flux.fluxMesh[x][y + 1] - flux.mesh[x][y] - flux.fluxMesh[x][y]);
+            unsigned int x1= (x+1+grid.sizeX)%(int)grid.sizeX;
+            grid.mesh[x][y] = grid.mesh[x][y] - dt / dx * (flux.mesh[x1][y]+ flux.fluxMesh[x][y1] - flux.mesh[x][y] - flux.fluxMesh[x][y]) + dt * S(x,y,grid.mesh[x][y]);
         }
+        //grid.mesh[grid.sizeX][y]=grid.mesh[grid.sizeX-1][y];
         //grid.mesh[grid.sizeX-1][y]={0};
     }
 }
@@ -240,8 +287,8 @@ sf::Color toColor(double val,double min,double max)
     double b=std::min(1.0,1-(val-mid)/(max-mid));
     double n=(val-min)/(max-min);
     //double r=-5*n*n+7.5*n+1-5.0/1.777777777;
-    ///double g=-20*n*n+20*n-4;
-   // double b=-5*n*n+2.5*n+0.6875;
+   // double g=-20*n*n+20*n-4;
+   //double b=-5*n*n+2.5*n+0.6875;
     sf::Color c((int)std::max(0.0,r*255),(int)std::max(0.0,g*255),(int)std::max(0.0,b*255));
     return c;
 }
@@ -270,9 +317,10 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t) {
           /*  points[x+y*grid.sizeX] = sf::Vertex(sf::Vector2f(  float(x* segmentX)- (float)windowsizeX ,
                                                     float(y* segmentY)- (float)windowsizeY),
                                      toColor(grid.mesh[x][y].val,-300,300));*/
-          double radius=500;
+          double radius=50;
          // if (std::sqrt(std::pow((x-mposx),2)+std::pow((y-mposy),2))<30) radius=10e-324;
-          r.setFillColor(toColor(grid.mesh[x][y].val,-radius,radius));
+         auto displayvar=grid.mesh[x][y].val;
+          r.setFillColor(toColor(displayvar,-radius,radius));
           r.setPosition(sf::Vector2f(  float(x* segmentX)- (float)windowsizeX/2, float(y* segmentY)- (float)windowsizeY/2));
           window.draw(r);
           if (y==mposy)
@@ -305,10 +353,10 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t) {
     window.draw(t);
 
 
-    for (int i = 0; i < grid.sizeX; i++)
+   /* for (int i = 0; i < grid.sizeX; i++)
     {
 
-    }
+    }*/
 
    // window.draw(points, grid.sizeX*grid.sizeY, sf::Points);
     //delete[] points;
@@ -318,21 +366,23 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t) {
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(700, 700), "wave");
-
-    Grid grid(300,300);
+    sf::RenderWindow window(sf::VideoMode(1000, 1000), "wave", sf::Style::Default, sf::ContextSettings(32));
+    window.setActive(true);
+    window.setFramerateLimit(60);
+    //InitGL();
+    Grid grid(100,100);
     grid.Fill(0);
-    for (int y = 10; y < 50; y++){
-        for (int x = 10; x < 50; x++){
-            grid.mesh[x][y].val = x*6;
+    /*for (int y = 90; y < 99; y++){
+        for (int x = 30; x < 60; x++){
+            grid.mesh[x][y].val = 900;
         }
-    }
+    }*/
     //grid.mesh[5][5].val = 10e-300;
     //grid.mesh[10].val = 50;
     //grid.mesh[11].val = 50;
     // dataArray[20] = 50;
     //dataArray[80] = 50;
-    double h = 0.05;
+    double h = 0.01;
     sf::View w;
     w = window.getDefaultView();
     w.setCenter(0, 0);
@@ -353,9 +403,12 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
+
+
         window.clear(sf::Color::Black);
         //solve(dataArray, arraySize, h);
-        RKIntegrator(grid, h);
+        for(int i=0;i<10;i++)
+            RKIntegrator(grid, h);
         double sum = 0;
         for (int y = 0; y < grid.sizeY; y++)
         {
