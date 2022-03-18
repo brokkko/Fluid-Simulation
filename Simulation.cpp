@@ -9,7 +9,11 @@ Cell SlopeLim(Cell r)
     return {std::max(0.0, std::min(1.0, r.rho)),
             std::max(0.0, std::min(1.0, r.vx)),
             std::max(0.0, std::min(1.0, r.vy)),
-            std::max(0.0, std::min(1.0, r.B))};
+            std::max(0.0, std::min(1.0, r.vz)),
+            std::max(0.0, std::min(1.0, r.Bx)),
+            std::max(0.0, std::min(1.0, r.By)),
+            std::max(0.0, std::min(1.0, r.Bz)),
+            std::max(0.0, std::min(1.0, r.E))};
 
     /* return Cell{std::max(0.0, 1.5 * (r.rho * r.rho + r.rho) / (r.rho * r.rho + r.rho + 1)),
                  std::max(0.0, 1.5 * (r.vx * r.vx + r.vx) / (r.vx * r.vx + r.vx + 1)),
@@ -32,16 +36,20 @@ double nonZeroDouble(double val)
     return val;
 }
 
-//one vastd::absble !!
 Cell nonZeroDenom(Cell denom)
 {
-    return {nonZeroDouble(denom.rho),nonZeroDouble(denom.vx),nonZeroDouble(denom.vy),nonZeroDouble(denom.B)};
+    return {nonZeroDouble(denom.rho),
+            nonZeroDouble(denom.vx),
+            nonZeroDouble(denom.vy),
+            nonZeroDouble(denom.vz),
+            nonZeroDouble(denom.Bx),
+            nonZeroDouble(denom.By),
+            nonZeroDouble(denom.Bz),
+            nonZeroDouble(denom.E)};
 }
 
 Cell F(Cell DX,Cell DY,Cell U)
 {
-    // double dvaldt=   dudx.rho * U.vx + U.rho * dudx.vx +
-    //  dudy.rho * U.vy + U.rho * dudy.vy;
 //dp/dt = p*Vx/dx + p/dx * Vx + p*Vy/dy + p/dy*Vy
     double drhodt = U.rho * DX.vx + DX.rho * U.vx + U.rho * DY.vy + DY.rho * U.vy;
     //p * Vx/dt = p/dx*Vx*Vx + 2*p*Vx/dx*Vx +
@@ -50,12 +58,13 @@ Cell F(Cell DX,Cell DY,Cell U)
     //			-2*Bx*Bx/dx
     //			-Bx/dy*By - Bx*By/dy
     //			-p/dt * Vx
-    double Pdx = 10 * DX.rho/U.rho;
+    double Pdx = (10 * DX.rho - (DX.Bx + DX.By + DX.Bz)) / U.rho ;
     double dvxdt = DX.rho*U.vx*U.vx + 2*U.rho*DX.vx*U.vx +
                    DY.rho*U.vx*U.vy + U.rho * DY.vx * U.vy + U.rho * U.vx * DY.vy
                    +Pdx
+                   -2 * U.Bx*DX.Bx
+                   -DY.Bx*U.By - U.Bx*DY.By
                    -drhodt * U.vx;
-    - (U.vx*U.B)+ (U.vy*U.B);
     //double pdvxdt = U.vx * DX.vx + U.vy * DY.vx + Pdx;
     //p * Vy/dt = p/dx*Vx*Vy + p*Vx/dx*Vy   + p*Vx*Vy/dx
     //			p/dy*Vy*Vy + 2*p*Vy/dy*Vy +
@@ -63,16 +72,42 @@ Cell F(Cell DX,Cell DY,Cell U)
     //			-Bx/dx*By - Bx*By/dx
     //			-2*By*By/dy
     //			-p/dt * Vy
-    double Pdy = 10 * DY.rho/U.rho;
+    double Pdy = (10 * DY.rho- (DY.Bx + DY.By + DY.Bz)) / U.rho;
     double dvydt = DX.rho*U.vx*U.vy + U.rho * DX.vx * U.vy + U.rho * U.vx * DX.vy +
                    DY.rho*U.vy*U.vy + 2*U.rho*DY.vy*U.vy +
                    +Pdy
+                   -DX.Bx*U.By - U.Bx * DX.Bx
+                   -2 * U.By * DY.By
                    -drhodt * U.vy;
-    + (U.vy*U.B)-(U.vx*U.B);
-    //double pdvydt =U.rho *  (U.vx * DX.vy + U.vy * DY.vy) + Pdy;
-    //pdvxdt = (U.vx*DX.vx + U.vy * DY.vx) + DX.rho*10 /*+ U.B*(dudx.B + dudy.B)*/;
-    //pdvydt = (U.vx*DX.vy + U.vy * DY.vy) + DY.rho*10/* + U.B*(dudx.B + dudy.B)*/;
-    return Cell{drhodt, dvxdt ,dvydt ,0};
+
+    double dvzdt = DX.rho*U.vx*U.vz + U.rho * DX.vx * U.vz + U.rho * U.vx * DX.vz +
+                    DY.rho*U.vy*U.vz + U.rho * DY.vy * U.vz + U.rho * U.vy * DY.vz +
+                   -DX.By*U.Bz - U.Bx * DX.Bz
+                   -DY.By*U.Bz - U.By * DY.Bz
+                   -drhodt * U.vy;
+
+    //B/dt = B*vx/dx + B/dx*vx + B*vy/dy + B/dy*vy
+    double dBxdt =  U.Bx * DY.vy + DY.Bx * U.vy
+                    -U.By * DY.vx - DY.By * U.vx;
+
+    double dBydt =  U.By * DX.vx + DX.By * U.vx
+                    -U.Bx * DX.vy - DX.Bx * U.vy;
+
+    double dBzdt =  U.Bz * DX.vx + DX.Bz * U.vx
+                    -U.Bx * DX.vz - DX.Bx * U.vz
+
+                    +U.Bz * DY.vy + DY.Bz * U.vy
+                    -U.By * DY.vz - DY.By * U.vz;
+
+
+    return Cell{drhodt,
+                dvxdt ,
+                dvydt ,
+                dvzdt,
+                dBxdt,
+                dBydt,
+                dBzdt,
+                0};
 }
 
 
@@ -109,8 +144,8 @@ void CalculateFlux(Grid& out, Grid& in)
             //eigenvalues? -> max speed a
             double a = 300;
             // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
-            out.mesh[x][y] =     (0.5 * (F(uR_x, {0,0,0,0},in.mesh[x][y]) + F(uL_x, {0,0,0,0},in.mesh[x][y]) - a * (uR_x - uL_x)));
-            out.fluxMesh[x][y] = (0.5 * (F({0,0,0,0}, uR_y,in.mesh[x][y]) + F({0,0,0,0}, uL_y,in.mesh[x][y]) - a * (uR_y - uL_y)));
+            out.mesh[x][y] =     (0.5 * (F(uR_x, Cell::zeros(),in.mesh[x][y]) + F(uL_x, Cell::zeros(),in.mesh[x][y]) - a * (uR_x - uL_x)));
+            out.fluxMesh[x][y] = (0.5 * (F(Cell::zeros(), uR_y,in.mesh[x][y]) + F(Cell::zeros(), uL_y,in.mesh[x][y]) - a * (uR_y - uL_y)));
 
         }
 
@@ -131,18 +166,27 @@ void ApplyBoundaryConditions(Grid& grid)
     {
         for (int y=32; y< 58;y++)
         {
-            grid.mesh[x][y].rho=10;
+            grid.mesh[x][y].rho=5;
             grid.mesh[x][y].vx=10;
             grid.mesh[x][y].vy=0;
+            grid.mesh[x][y].Bz=5;
         }
     }
     for (int y=0;y<grid.sizeY;y++) {
         grid.mesh[0][y].rho=0.01;
         grid.mesh[0][y].vx=0;
         grid.mesh[0][y].vy=0;
+        grid.mesh[0][y].vz=0;
+        grid.mesh[0][y].Bx=0;
+        grid.mesh[0][y].By=0;
+        grid.mesh[0][y].Bz=5;
         grid.mesh[grid.sizeX-1][y].rho=0.01;
         grid.mesh[grid.sizeX-1][y].vx=0;
         grid.mesh[grid.sizeX-1][y].vy=0;
+        grid.mesh[grid.sizeX-1][y].vz=0;
+        grid.mesh[grid.sizeX-1][y].Bx=0;
+        grid.mesh[grid.sizeX-1][y].By=0;
+        grid.mesh[grid.sizeX-1][y].Bz=5;
     }
 }
 

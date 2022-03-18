@@ -16,9 +16,9 @@ int main()
     //InitGL();
     Grid grid(70,70);
     grid.Fill(0.01);
-    for (int y = 90; y < 99; y++){
-        for (int x = 30; x < 60; x++){
-           //grid.mesh[x][y].rho = 50;
+    for (int y = 45; y < 55; y++){
+        for (int x = 20; x < 40; x++){
+          // grid.mesh[x][y].rho = 5;
         }
     }
     //grid.mesh[5][5].val = 10e-300;

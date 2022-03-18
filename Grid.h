@@ -23,10 +23,10 @@ struct Grid
             mesh[i] = new Cell[sizeY+1];
         }
         for (int i=0; i<sizeX+1; i++){
-            mesh[i][0] = {0,0,0,0};
+            mesh[i][0] = {0,0,0,0,0,0,5,0};
         }
         for (int i=0; i<sizeY+1; i++){
-            mesh[0][i] = {0,0,0,0};
+            mesh[0][i] = {0,0,0,0,0,0,5,0};
         }
         fluxMesh= nullptr;
     }
@@ -37,16 +37,16 @@ struct Grid
             fluxMesh[i] = new Cell[sizeY+1];
         }
         for (int i=0; i<sizeX+1; i++){
-            fluxMesh[i][0] = {0,0,0,0};
+            fluxMesh[i][0] = {0,0,0,0,0, 0,0,0};
         }
         for (int i=0; i<sizeY+1; i++){
-            fluxMesh[0][i] = {0,0,0,0};
+            fluxMesh[0][i] = {0,0,0,0,0,0,0,0};
         }
     }
     void Fill(double v) {
         for (int i = 0; i < sizeX; i++) {
             for (int j = 0; j < sizeY; j++) {
-                mesh[i][j] = {v, 0, 0, 50};
+                mesh[i][j] = {v, 0, 0,0 ,0,0,5,0};
             }
         }
     }

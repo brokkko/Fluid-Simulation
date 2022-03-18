@@ -1,5 +1,5 @@
 #include "Graphics.h"
-#define COLOR_SCHEME 0
+#define COLOR_SCHEME 1
 sf::Color toColor(double val,double min,double max)
 {
 
