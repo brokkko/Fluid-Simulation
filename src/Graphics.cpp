@@ -7,6 +7,12 @@ sf::Color toColor(double val,double min,double max)
     if (std::isnan(val)){
         return sf::Color::Magenta;
     }
+    if (val<min){
+        return sf::Color::Green;
+    }
+    if (val>max){
+        return sf::Color::Yellow;
+    }
 #if COLOR_SCHEME == 0
     double r = std::min(1.0, 1 - (mid - val) / (max - mid));
     double g = 1 - std::abs(val - mid) / (max - mid);
@@ -22,12 +28,12 @@ sf::Color toColor(double val,double min,double max)
     return c;
 }
 
-void show(Grid& grid, sf::RenderWindow& window,sf::Text& t) {
+void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode) {
     //sf::Vertex* points=new sf::Vertex[grid.sizeX*grid.sizeY];
     sf::Vertex varr[grid.sizeX];
     sf::Vertex varry[grid.sizeY];
     sf::Vertex l[2*((grid.sizeX+1)/5)*((grid.sizeY+1)/5+2)];
-    double graphm=1.0/3;
+    double graphm=1.0/5000;
     int graph_h=100;
 
     auto mPos=sf::Mouse::getPosition()- window.getPosition();
@@ -43,16 +49,21 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t) {
     r.setSize(sf::Vector2f{float(segmentX),float(segmentY)});
     for (int y = 0; y < grid.sizeY+1; y++){
         for (int x = 0; x < grid.sizeX+1; x++){
-            double radius=0.05;
+            double radius=upperbound;
 
             Cell U =grid.mesh[x][y];
             double gamma = 5.0/3 - 1;
+            double mu =1.2566e-8;
             double p = gamma * (U.E - 1.0/2*U.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
-                                - 1.0/2*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz));
-            double P = p + 1.0/2*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz);
-
-            auto displayvar=U.rho;
-            r.setFillColor(toColor(displayvar,-radius*0,radius));
+                                - 1.0/(2*mu)*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz));
+            double P = p + (U.Bx * U.Bx + U.By * U.By + U.Bz * U.Bz) / (2 * mu);
+            double displayvar=0;
+            if (mode<8)
+                displayvar=reinterpret_cast<double*>(&U)[mode];
+            else displayvar=P;
+            int lowerbound=0;
+            if (mode >0 && mode < 7) lowerbound = 1;
+            r.setFillColor(toColor(displayvar,-radius*lowerbound,radius));
             r.setPosition(sf::Vector2f(  float(x* segmentX)- (float)windowsizeX/2, float(y* segmentY)- (float)windowsizeY/2));
             window.draw(r);
             if (x%5 ==0 && y % 5 ==0)
@@ -76,10 +87,28 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t) {
     window.draw(l, 2*((grid.sizeX)/5)*((grid.sizeY)/5), sf::Lines);
     window.draw(varry, grid.sizeY, sf::LinesStrip);
 
-    std::stringstream ss;
+    Cell U =grid.mesh[mposx][mposy];
+    double gamma = 5.0/3 - 1;
+    double mu =1.2566e-8;
+    double p = gamma * (U.E - 1.0/2*U.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
+                        - 1.0/(2*mu)*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz));
+    double P = p + (U.Bx * U.Bx + U.By * U.By + U.Bz * U.Bz) / (2 * mu);
 
-    ss<<grid.mesh[mposx][mposy].E;
+
+
+    std::stringstream ss;
+    std::stringstream ss2;
+    if (mode<8)
+        ss<<reinterpret_cast<double*>(&U)[mode];
+    else ss<<P;
+
     t.setString(ss.str());
     t.setPosition(window.mapPixelToCoords( {mPos.x,mPos.y}));
+    window.draw(t);
+
+    std::string names[] ={"RHO","Vx","Vy","Vz","Bx","By","Bz","E","P"};
+    ss2<<upperbound << " "<<"mode: "<<names[mode];
+    t.setString(ss2.str());
+    t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
     window.draw(t);
 }

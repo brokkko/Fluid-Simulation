@@ -13,5 +13,5 @@
 
 
 sf::Color toColor(double val,double min,double max);
-void show(Grid& grid, sf::RenderWindow& window,sf::Text& t);
+void show(Grid& grid, sf::RenderWindow& window,sf::Text& t, double upperbound,int mode);
 #endif //FLUID_SIMULATION_GRAPHICS_H

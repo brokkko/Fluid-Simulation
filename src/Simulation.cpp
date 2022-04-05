@@ -52,83 +52,112 @@ Cell nonZeroDenom(Cell denom)
 
 Cell F(Cell DX,Cell DY,Cell U)
 {
+    Cell DZ=Cell::zeros();
 
     double gamma = 5.0/3 - 1;
-    double p = gamma * (U.E - 1.0/2*U.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
-                        - 1.0/2*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz));
+    double mu =1.2566e-8;
+
+    double p = gamma * (U.E - 1.0/2 * U.rho* (U.vx * U.vx + U.vy * U.vy + U.vz * U.vz)
+                        - 1.0/(2*mu)*(U.Bx*U.Bx + U.By*U.By + U.Bz * U.Bz));
+
+    double pdx =  gamma * (DX.E - DX.rho * (U.vx * U.vx + U.vy * U.vy + U.vz * U.vz) / 2
+                           - U.rho * (DX.vx * U.vx + DX.vy * U.vy + DX.vz * U.vz)
+                           - (DX.Bx * U.Bx + DX.By * U.By + DX.Bz * U.Bz)/mu) ;
+
+    double pdy =  gamma * (DY.E - DY.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz) / 2
+                           - U.rho * (DY.vx * U.vx + DY.vy * U.vy + DY.vz * U.vz)
+                           - (DY.Bx * U.Bx + DY.By * U.By + DY.Bz * U.Bz)/mu) ;
+
+    double pdz =  gamma * (DZ.E - DZ.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz) / 2
+                           - U.rho * (DZ.vx * U.vx + DZ.vy * U.vy + DZ.vz * U.vz)
+                           - (DZ.Bx * U.Bx + DZ.By * U.By + DZ.Bz * U.Bz)/mu) ;
+
+    //if(std::abs(pdx>0.001))
+        //std::cout<<pdx<<"\n";
 
 
-    double pdx =  gamma * (DX.E - 1.0/2*DX.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
-                           - U.rho*(DX.vx + DX.vy + DX.vz)
-                           - (DX.Bx + DX.By + DX.Bz)) ;
+    double P = p + (U.Bx * U.Bx + U.By * U.By + U.Bz * U.Bz) / (2 * mu);
 
-    double pdy =  gamma * (DY.E - 1.0/2*DY.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
-                           - U.rho*(DY.vx + DY.vy + DY.vz)
-                           - (DY.Bx + DY.By + DY.Bz)) ;
+    double Pdx = (pdx + (DX.Bx * U.Bx + DX.By * U.By + DX.Bz * U.Bz) / mu);
+    double Pdy = (pdy + (DY.Bx * U.Bx + DY.By * U.By + DY.Bz * U.Bz) / mu);
+    double Pdz = (pdz + (DZ.Bx * U.Bx + DZ.By * U.By + DZ.Bz * U.Bz) / mu);
 
-//dp/dt = p*Vx/dx + p/dx * Vx + p*Vy/dy + p/dy*Vy
-    double drhodt = U.rho * DX.vx + DX.rho * U.vx + U.rho * DY.vy + DY.rho * U.vy;
-    //p * Vx/dt = p/dx*Vx*Vx + 2*p*Vx/dx*Vx +
-    //			p/dy*Vx*Vy + p*Vx/dy*Vy   + p*Vx*Vy/dy
-    //			- P/dx
-    //			-2*Bx*Bx/dx
-    //			-Bx/dy*By - Bx*By/dy
-    //			-p/dt * Vx
-    double Pdx = (pdx + (DX.Bx + DX.By + DX.Bz));/// U.rho;
+    double drhodt = DX.rho * U.vx + DY.rho * U.vy + DZ.rho * U.vz
+                    + U.rho * (DX.vx + DY.vy + DZ.vz);
 
 
-    double dvxdt = (DX.rho*U.vx*U.vx + 2*U.rho*DX.vx*U.vx +
-                   DY.rho*U.vx*U.vy + U.rho * DY.vx * U.vy + U.rho * U.vx * DY.vy
+    double dvxdt = (DX.rho*U.vx*U.vx + 2 * U.rho * DX.vx * U.vx
+                   +DY.rho*U.vx*U.vy + U.rho * DY.vx * U.vy + U.rho * U.vx * DY.vy
+                   +DZ.rho*U.vx*U.vz + U.rho * DZ.vx * U.vz + U.rho * U.vx * DZ.vz
                    +Pdx
-                   -2 * U.Bx*DX.Bx
-                   -DY.Bx*U.By - U.Bx*DY.By)
-                   //drhodt;
-                   -drhodt* U.vx;
+                   -2 * U.Bx*DX.Bx / mu
+                   -(DY.Bx * U.By + U.Bx * DY.By) / mu
+                   -(DZ.Bx * U.Bz + U.Bx * DZ.Bz) / mu
+                   -drhodt * U.vx);// / U.rho;
 
-    //double pdvxdt = U.vx * DX.vx + U.vy * DY.vx + Pdx;
-    //p * Vy/dt = p/dx*Vx*Vy + p*Vx/dx*Vy   + p*Vx*Vy/dx
-    //			p/dy*Vy*Vy + 2*p*Vy/dy*Vy +
-    //			-P/dy
-    //			-Bx/dx*By - Bx*By/dx
-    //			-2*By*By/dy
-    //			-p/dt * Vy
-    double Pdy = (pdy + (DY.Bx + DY.By + DY.Bz));// / U.rho;
-    //Pdy = 0; //10*DY.rho;
-    //Pdy = Pdy/10;
-    //Pdy = 10*DY.rho;
 
-    double dvydt = (DX.rho*U.vx*U.vy + U.rho * DX.vx * U.vy + U.rho * U.vx * DX.vy +
-                   DY.rho*U.vy*U.vy + 2*U.rho*DY.vy*U.vy +
+    double dvydt = (DX.rho * U.vx * U.vy + U.rho * DX.vx * U.vy + U.rho * U.vx * DX.vy
+                   +DY.rho * U.vy * U.vy + 2 * U.rho * DY.vy * U.vy
+                   +DZ.rho * U.vz * U.vy + U.rho * DZ.vz * U.vy + U.rho * U.vz * DZ.vy
                    +Pdy
-                   -DX.Bx*U.By - U.Bx * DX.Bx
-                   -2 * U.By * DY.By)
-                           //drhodt;
-                   -drhodt * U.vy;
+                   -(DX.Bx * U.By + U.Bx * DX.By) / mu
+                   -2 * U.By * DY.By / mu
+                   -(DZ.Bz * U.By + U.Bz * DZ.By) / mu
+                   -drhodt * U.vy);///U.rho;
 
-    double dvzdt = DX.rho*U.vx*U.vz + U.rho * DX.vx * U.vz + U.rho * U.vx * DX.vz +
-                   DY.rho*U.vy*U.vz + U.rho * DY.vy * U.vz + U.rho * U.vy * DY.vz +
-                   -DX.By*U.Bz - U.Bx * DX.Bz
-                   -DY.By*U.Bz - U.By * DY.Bz
-                   -drhodt * U.vz;
+    double dvzdt = (DX.rho * U.vx * U.vz + U.rho * DX.vx * U.vz + U.rho * U.vx * DX.vz
+                   +DY.rho * U.vy * U.vz + U.rho * DY.vy * U.vz + U.rho * U.vy * DY.vz
+                   +DZ.rho * U.vz * U.vz + 2 * U.rho * DZ.vz * U.vz
+                   +Pdz
+                   -(DX.Bx * U.Bz + U.Bx * DX.Bz) / mu
+                   -(DY.By * U.Bz + U.By * DY.Bz) / mu
+                   -2 * U.Bz * DZ.Bz / mu
+                   -drhodt * U.vz);// / U.rho;
 
-    //B/dt = B*vx/dx + B/dx*vx + B*vy/dy + B/dy*vy
-    double dBxdt =  U.Bx * DY.vy + DY.Bx * U.vy
-                    -U.By * DY.vx - DY.By * U.vx;
+    double dBxdt =  DY.vx * U.By + DY.By * U.vx
+                    - DY.vy * U.Bx - DY.Bx * U.vy
+                    + DZ.vx * U.Bz + DZ.Bz * U.vx
+                    - DZ.vz * U.Bx - DZ.Bx * U.vz;
 
-    double dBydt =  U.By * DX.vx + DX.By * U.vx
-                    -U.Bx * DX.vy - DX.Bx * U.vy;
+    double dBydt =  - DX.vx * U.By - DX.By * U.vx
+                    + DX.vy * U.Bx + DX.Bx * U.vy
+                    + DZ.vy * U.Bz + DZ.Bz * U.vy
+                    - DZ.vz * U.By - DZ.By * U.vz;
 
-    double dBzdt =  U.Bz * DX.vx + DX.Bz * U.vx
-                    -U.Bx * DX.vz - DX.Bx * U.vz
+    double dBzdt = - DX.vx * U.Bz - DX.Bz * U.vx
+                   + DX.vz * U.Bx + DX.Bx * U.vz
+                   - DY.vy * U.Bz - DY.Bz * U.vy
+                   + DY.vz * U.By + DY.By * U.vz;
 
-                    +U.Bz * DY.vy + DY.Bz * U.vy
-                    -U.By * DY.vz - DY.By * U.vz;
 
-    //E*vx / dx = E/dx*vx + E*vx/dx
-    //BxByVy/dx = (Bx)'*By*Vy + Bx*By'*Vy + Bx*By*Vy'
-    // p* = 10*U.rho - (DX.Bx + DX.By + DX.Bz), p*dt = dPdt
-    double P = p + 1.0/2*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz);
-    //P = 0;
+
+    //double dExdt = DX.E*U.vx + U.E*DX.vx + Pdx*U.rho*U.vx + P*DX.vx
+                   - 2*DX.Bx*U.vx - U.Bx*U.Bx*DX.vx
+                   - DX.Bx*U.By*U.vy - U.Bx*DX.By*U.vy - U.Bx*U.By*DX.vy
+                   - DX.Bx*U.Bz*U.vz - U.Bx*DX.Bz*U.vz - U.Bx*U.Bz*DX.vz;
+
+    //double dEydt = DY.E*U.vy + U.E*DY.vy + Pdy*U.rho*U.vy + P*DY.vy
+                   - 2*DY.By*U.vy - U.By*U.By*DY.vy
+                   - DY.Bx*U.By*U.vx - U.Bx*DY.By*U.vx - U.Bx*U.By*DY.vx
+                   - DY.By*U.Bz*U.vz - U.By*DY.Bz*U.vz - U.By*U.Bz*DY.vz;
+
+    ///double dEdt = dExdt + dEydt;
+
+    double dEdt = -(DX.E * U.vx + DY.E * U.vy + DZ.E * U.vz) + U.E * (DX.vx + DY.vy + DZ.vz)    //nabla(EV)
+                  -(Pdx * U.vx + Pdy * U.vy + Pdz * U.vz) + P * (DX.vx + DY.vy + DZ.vz)         //nabla(PV)
+
+                  + (DX.vx * U.Bx * U.Bx + 2 * DX.Bx * U.Bx * U.vx
+                  + DX.vy * U.Bx * U.By + DX.Bx * U.By * U.vy + DX.By * U.Bx * U.vy             //DX
+                  + DX.vz * U.Bx * U.Bz + DX.Bx * U.Bz * U.vz + DX.Bz * U.Bx * U.vz
+
+                  + DY.By * U.Bx * U.vx + DY.Bx * U.By * U.vx  +DY.vx * U.By * U.Bx
+                  + 2 * DY.By * U.By * U.vy + DY.vy * U.By * U.By
+                  + DY.By * U.Bz * U.vz + DY.Bz * U.By * U.vz + DY.vz * U.By * U.Bz
+
+                  + DZ.vx * U.Bz * U.Bx + DZ.Bz * U.Bx * U.vx + DZ.Bx * U.Bz * U.vx
+                  + DZ.vy * U.Bz * U.By + DZ.Bz * U.By * U.vy + DZ.By * U.Bz * U.vy
+                  + DZ.vz * U.Bz * U.Bz + 2 * DZ.Bz * U.Bz * U.vz)/mu;
+
 
     double dExdt = DX.E*U.vx + U.E*DX.vx + Pdx*U.rho*U.vx + P*DX.vx
                    - 2*DX.Bx*U.vx - U.Bx*U.Bx*DX.vx
@@ -140,16 +169,15 @@ Cell F(Cell DX,Cell DY,Cell U)
                    - DY.Bx*U.By*U.vx - U.Bx*DY.By*U.vx - U.Bx*U.By*DY.vx
                    - DY.By*U.Bz*U.vz - U.By*DY.Bz*U.vz - U.By*U.Bz*DY.vz;
 
-    double dEdt = dExdt + dEydt;
-
+    dEdt = dExdt + dEydt;
 
     return Cell{drhodt,
                 dvxdt ,
                 dvydt ,
                 dvzdt,
-                dBxdt,
-                dBydt,
-                dBzdt,
+                0,
+                0,
+                0,
                 dEdt};
 }
 
@@ -204,7 +232,7 @@ void CalculateFlux(Grid& out, Grid& in)
             //eigenvalues? -> max speed a
             double a = 500;
             a = maxSpeed(in.mesh[x][y]);
-             a = 250;
+             a = 1000;
             //std::cout << a << std::endl;
             // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
             out.mesh[x][y] =     (0.5 * (F(uR_x, Cell::zeros(),in.mesh[x][y]) + F(uL_x, Cell::zeros(),in.mesh[x][y]) - a * (uR_x - uL_x)));
@@ -240,8 +268,8 @@ void InitialConditions(Grid& grid) {
             //        for (int x = 20; x < 40; x++){
             if(x>20 && x< 40 && y>45 && y<55)
             {
-                rho=0.03;
-                vx=1;
+                rho=0.02;
+                vx=0;
             }
 
 
