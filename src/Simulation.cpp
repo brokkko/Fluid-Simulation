@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include "Simulation.h"
+#include "Constants.h"
 
 Cell SlopeLim(Cell r)
 {
@@ -54,8 +55,6 @@ Cell F(Cell DX,Cell DY,Cell U)
 {
     Cell DZ=Cell::zeros();
 
-    double gamma = 5.0/3 - 1;
-    double mu =1.2566e-8;
 
     double p = gamma * (U.E - 1.0/2 * U.rho* (U.vx * U.vx + U.vy * U.vy + U.vz * U.vz)
                         - 1.0/(2*mu)*(U.Bx*U.Bx + U.By*U.By + U.Bz * U.Bz));
@@ -89,17 +88,17 @@ Cell F(Cell DX,Cell DY,Cell U)
     double dvxdt = (DX.rho*U.vx*U.vx + 2 * U.rho * DX.vx * U.vx
                    +DY.rho*U.vx*U.vy + U.rho * DY.vx * U.vy + U.rho * U.vx * DY.vy
                    +DZ.rho*U.vx*U.vz + U.rho * DZ.vx * U.vz + U.rho * U.vx * DZ.vz
-                   +Pdx
+                   +Pdx// * U.rho//*0.01
                    -2 * U.Bx*DX.Bx / mu
                    -(DY.Bx * U.By + U.Bx * DY.By) / mu
                    -(DZ.Bx * U.Bz + U.Bx * DZ.Bz) / mu
-                   -drhodt * U.vx);// / U.rho;
+                   -drhodt * U.vx);/// U.rho;
 
 
     double dvydt = (DX.rho * U.vx * U.vy + U.rho * DX.vx * U.vy + U.rho * U.vx * DX.vy
                    +DY.rho * U.vy * U.vy + 2 * U.rho * DY.vy * U.vy
                    +DZ.rho * U.vz * U.vy + U.rho * DZ.vz * U.vy + U.rho * U.vz * DZ.vy
-                   +Pdy
+                   +Pdy// * U.rho//*0.01
                    -(DX.Bx * U.By + U.Bx * DX.By) / mu
                    -2 * U.By * DY.By / mu
                    -(DZ.Bz * U.By + U.Bz * DZ.By) / mu
@@ -108,7 +107,7 @@ Cell F(Cell DX,Cell DY,Cell U)
     double dvzdt = (DX.rho * U.vx * U.vz + U.rho * DX.vx * U.vz + U.rho * U.vx * DX.vz
                    +DY.rho * U.vy * U.vz + U.rho * DY.vy * U.vz + U.rho * U.vy * DY.vz
                    +DZ.rho * U.vz * U.vz + 2 * U.rho * DZ.vz * U.vz
-                   +Pdz
+                   +Pdz// * U.rho//*0.01
                    -(DX.Bx * U.Bz + U.Bx * DX.Bz) / mu
                    -(DY.By * U.Bz + U.By * DY.Bz) / mu
                    -2 * U.Bz * DZ.Bz / mu
@@ -131,20 +130,8 @@ Cell F(Cell DX,Cell DY,Cell U)
 
 
 
-    //double dExdt = DX.E*U.vx + U.E*DX.vx + Pdx*U.rho*U.vx + P*DX.vx
-                   - 2*DX.Bx*U.vx - U.Bx*U.Bx*DX.vx
-                   - DX.Bx*U.By*U.vy - U.Bx*DX.By*U.vy - U.Bx*U.By*DX.vy
-                   - DX.Bx*U.Bz*U.vz - U.Bx*DX.Bz*U.vz - U.Bx*U.Bz*DX.vz;
-
-    //double dEydt = DY.E*U.vy + U.E*DY.vy + Pdy*U.rho*U.vy + P*DY.vy
-                   - 2*DY.By*U.vy - U.By*U.By*DY.vy
-                   - DY.Bx*U.By*U.vx - U.Bx*DY.By*U.vx - U.Bx*U.By*DY.vx
-                   - DY.By*U.Bz*U.vz - U.By*DY.Bz*U.vz - U.By*U.Bz*DY.vz;
-
-    ///double dEdt = dExdt + dEydt;
-
-    double dEdt = -(DX.E * U.vx + DY.E * U.vy + DZ.E * U.vz) + U.E * (DX.vx + DY.vy + DZ.vz)    //nabla(EV)
-                  -(Pdx * U.vx + Pdy * U.vy + Pdz * U.vz) + P * (DX.vx + DY.vy + DZ.vz)         //nabla(PV)
+    double dEdt = (DX.E * U.vx + DY.E * U.vy + DZ.E * U.vz) + U.E * (DX.vx + DY.vy + DZ.vz)    //nabla(EV)
+                  +(Pdx * U.vx + Pdy * U.vy + Pdz * U.vz) + P * (DX.vx + DY.vy + DZ.vz)  ;       //nabla(PV)
 
                   + (DX.vx * U.Bx * U.Bx + 2 * DX.Bx * U.Bx * U.vx
                   + DX.vy * U.Bx * U.By + DX.Bx * U.By * U.vy + DX.By * U.Bx * U.vy             //DX
@@ -159,30 +146,17 @@ Cell F(Cell DX,Cell DY,Cell U)
                   + DZ.vz * U.Bz * U.Bz + 2 * DZ.Bz * U.Bz * U.vz)/mu;
 
 
-    double dExdt = DX.E*U.vx + U.E*DX.vx + Pdx*U.rho*U.vx + P*DX.vx
-                   - 2*DX.Bx*U.vx - U.Bx*U.Bx*DX.vx
-                   - DX.Bx*U.By*U.vy - U.Bx*DX.By*U.vy - U.Bx*U.By*DX.vy
-                   - DX.Bx*U.Bz*U.vz - U.Bx*DX.Bz*U.vz - U.Bx*U.Bz*DX.vz;
-
-    double dEydt = DY.E*U.vy + U.E*DY.vy + Pdy*U.rho*U.vy + P*DY.vy
-                   - 2*DY.By*U.vy - U.By*U.By*DY.vy
-                   - DY.Bx*U.By*U.vx - U.Bx*DY.By*U.vx - U.Bx*U.By*DY.vx
-                   - DY.By*U.Bz*U.vz - U.By*DY.Bz*U.vz - U.By*U.Bz*DY.vz;
-
-    dEdt = dExdt + dEydt;
-
     return Cell{drhodt,
                 dvxdt ,
                 dvydt ,
                 dvzdt,
-                0,
-                0,
-                0,
+                dBxdt,
+                dBydt,
+                dBzdt,
                 dEdt};
 }
 
 double maxSpeed(Cell U){
-    double gamma = 5.0/3 - 1;
     double p = gamma * (U.E - 1.0/2*U.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
                         - 1.0/2*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz));
     double P = p + 1.0/2*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz);
@@ -230,9 +204,13 @@ void CalculateFlux(Grid& out, Grid& in)
             auto uR_y = in.mesh[x][y]   - 0.5 * SlopeLim(ry_current)   * (in.mesh[x][y1] - in.mesh[x][y]);
 
             //eigenvalues? -> max speed a
-            double a = 500;
-            a = maxSpeed(in.mesh[x][y]);
-             a = 1000;
+#if defined(USE_CONST_A)
+            double a = A_SPEED;
+#else
+            double a = maxSpeed(in.mesh[x][y]);
+#endif
+
+
             //std::cout << a << std::endl;
             // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
             out.mesh[x][y] =     (0.5 * (F(uR_x, Cell::zeros(),in.mesh[x][y]) + F(uL_x, Cell::zeros(),in.mesh[x][y]) - a * (uR_x - uL_x)));
@@ -258,17 +236,15 @@ void InitialConditions(Grid& grid) {
             double vx=0;
             double vy=0;
             double vz=0;
-            double Bx=0;
-            double By=0;
-            double Bz=0;
+            double Bx=0.000;
+            double By=0.000;
+            double Bz=0.000;
             double T =273;
-            double m_div_k=8249.805773;
-            double mu =1.2566e-8;
             // for (int y = 45; y < 55; y++){
             //        for (int x = 20; x < 40; x++){
             if(x>20 && x< 40 && y>45 && y<55)
             {
-                rho=0.02;
+                rho=0.03;
                 vx=0;
             }
 
@@ -288,38 +264,34 @@ void InitialConditions(Grid& grid) {
 
 void ApplyBoundaryConditions(Grid& grid)
 {
-   /* double rho=0.01;
-    double vx=0;
-    double vy=0;
-    double vz=0;
-    double Bx=0;
-    double By=0;
-    double Bz=0;
-    double T =273;
-    double m_div_k=8249.805773;
-    double mu =1.2566e-8;
-    //nk=rho/m m=1.6733e-27
-    //k=1.38044e-23
-    double E = 3 * rho * m_div_k * T
-               + rho * (vx*vx + vy*vy + vz*vz)
-               + (Bx*Bx + By*By + Bz*Bz) /(2*mu);
-    for (int y=0;y<grid.sizeY;y++) {
-        grid.mesh[0][y].rho=rho;
-        grid.mesh[0][y].vx=0;
-        grid.mesh[0][y].vy=0;
-        grid.mesh[0][y].vz=0;
-        grid.mesh[0][y].Bx=0;
-        grid.mesh[0][y].By=0;
-        grid.mesh[0][y].Bz=0;
-        grid.mesh[0][y].E = E;
-        grid.mesh[grid.sizeX-1][y].rho=rho;
-        grid.mesh[grid.sizeX-1][y].vx=0;
-        grid.mesh[grid.sizeX-1][y].vy=0;
-        grid.mesh[grid.sizeX-1][y].vz=0;
-        grid.mesh[grid.sizeX-1][y].Bx=0;
-        grid.mesh[grid.sizeX-1][y].By=0;
-        grid.mesh[grid.sizeX-1][y].Bz=0;
-        grid.mesh[grid.sizeX-1][y].E = E;
+    for (int x = 20; x < 40; x++){
+        for (int y = 45; y < 55; y++){
+            double rho = 0.03;
+            double vx = 0;
+            double vy = 0;
+            double vz = 0;
+            double Bx = 0.000;
+            double By = 0.000;
+            double Bz = 0.000;
+            double T = 273;
+
+            double E = 3 * rho * m_div_k * T
+                       + rho * (vx * vx + vy * vy + vz * vz)
+                       + (Bx * Bx + By * By + Bz * Bz) / (2 * mu);
+
+            grid.mesh[x][y].rho = rho;
+            grid.mesh[x][y].E = E;
+        }
+    }
+
+    /*for (int y=0;y<grid.sizeY;y++) {
+        grid.mesh[0][y]=grid.mesh[1][y];
+        grid.mesh[grid.sizeX][y]=grid.mesh[grid.sizeX-2][y];
+
+    }
+    for (int x=0;x<grid.sizeX;x++) {
+        grid.mesh[x][0]=grid.mesh[x][1];
+        grid.mesh[x][grid.sizeY-1]=grid.mesh[x][grid.sizeY-2];
     }*/
 }
 

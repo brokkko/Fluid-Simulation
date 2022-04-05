@@ -17,21 +17,10 @@ int main()
     sf::RenderWindow window(sf::VideoMode(700, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
     window.setActive(true);
     window.setFramerateLimit(60);
-    //InitGL();
     Grid grid(70,70);
     InitialConditions(grid);
-    //grid.Fill(0.01);
-    /*for (int y = 45; y < 55; y++){
-        for (int x = 20; x < 40; x++){
-            grid.mesh[x][y].rho=5;
-            grid.mesh[x][y].vx=10;
-            grid.mesh[x][y].vy=0;
-            grid.mesh[x][y].Bz=0;
-            grid.mesh[x][y].E = 3000;
-        }
-    }*/
 
-    double h = 0.0001;
+    double h = 0.0005;
     sf::View w;
     w = window.getDefaultView();
     w.setCenter(0, 0);
@@ -79,8 +68,6 @@ int main()
         {
             for (int x = 0; x < grid.sizeX; x++){
                 sum += grid.mesh[x][y].E;
-               // vel+=grid.mesh[x][y].E);
-
             }
         }
         //printf("E = %0.10e\n",sum);

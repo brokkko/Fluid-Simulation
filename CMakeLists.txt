@@ -8,7 +8,7 @@ include_directories(headers /usr/include C:/SFML/include)
 include_directories(${netcdf_DIR}/../../../include)
 link_directories(${netcdf_DIR}/../../../lib GL)
 
-set(project_files src/Cell.h src/Cell.cpp src/Grid.h src/Graphics.h src/Simulation.h src/Simulation.cpp src/Graphics.cpp)
+set(project_files src/Cell.h src/Cell.cpp src/Grid.h src/Graphics.h src/Simulation.h src/Simulation.cpp src/Graphics.cpp src/Constants.h)
 
 add_executable(Fluid_Simulation main.cpp ${project_files})
 
