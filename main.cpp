@@ -84,12 +84,12 @@ Cell F(Cell u)
 //one variable !!
 Cell nonZeroDenom(Cell denom)
 {
-    if (abs(denom.val) < DBL_EPSILON)
+    if (abs(denom.val) < __DBL_EPSILON__)
     {
         if (denom.val < 0)
-            return {-DBL_EPSILON};
+            return {-__DBL_EPSILON__};
         else 
-            return {DBL_EPSILON};
+            return {__DBL_EPSILON__};
     }
     return denom;
 }
