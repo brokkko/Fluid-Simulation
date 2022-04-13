@@ -40,6 +40,31 @@ sf::Color toColor(double val,double min,double max)
     return c;
 }
 
+void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode) {
+    sf::RectangleShape r;
+
+    unsigned int windowsizeX = window.getSize().x;
+    unsigned int windowsizeY = window.getSize().y;
+    double maxRadius = std::min((double)windowsizeX/2,(double)windowsizeY/2);
+    double CellRSize= maxRadius / grid.getSizeR();
+    for (int y = 0; y < grid.getSizePhi(); y++){
+        for (int x = 0; x < grid.getSizeR(); x++){
+            double radius=0.02;
+
+            Cell U =grid.getCell(x,y,0);
+            double displayvar = U.rho;
+            r.setFillColor(toColor(displayvar,0,radius));
+
+            r.setRotation((float)grid.getPhiFromIndex(y)/(2*M_PI)*360);
+            r.setSize(sf::Vector2f(CellRSize,2*M_PI*CellRSize*x/grid.getSizePhi()));
+            r.setPosition(sf::Vector2f(x*CellRSize*std::cos(grid.getPhiFromIndex(y)),x*CellRSize*std::sin(grid.getPhiFromIndex(y))));
+            window.draw(r);
+        }
+    }
+
+}
+
+
 void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode) {
     //sf::Vertex* points=new sf::Vertex[grid.sizeX*grid.sizeY];
     sf::Vertex varr[grid.sizeX];
@@ -49,7 +74,7 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
     int graph_h=100;
     int graph_offset=50;
 
-    auto mPos=sf::Mouse::getPosition()- window.getPosition();
+    auto mPos=sf::Mouse::getPosition(window);
 
     unsigned int windowsizeX = window.getSize().x;
     unsigned int windowsizeY = window.getSize().y;
@@ -123,7 +148,7 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
     else ss<<P;
 
     t.setString(ss.str());
-    t.setPosition(window.mapPixelToCoords( {mPos.x,mPos.y}));
+    t.setPosition(window.mapPixelToCoords( {mPos.x,mPos.y+20}));
     window.draw(t);
 
     std::string names[] ={"RHO","Vx","Vy","Vz","Bx","By","Bz","E","P"};

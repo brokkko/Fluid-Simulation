@@ -2,6 +2,7 @@
 #define FLUID_SIMULATION_SIMULATION_H
 #include <cmath>
 #include "Grid.h"
+#include "SphericalGrid.h"
 
 
 // one variable!!
@@ -14,12 +15,12 @@ Cell nonZeroDenom(Cell denom);
 
 Cell F(Cell DX,Cell DY,Cell U);
 
-void CalculateFlux(Grid& out, Grid& in);
+void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, Grid& in);
 
 Cell S(int x,int y,Cell val);
 
-void InitialConditions(Grid& grid);
-void ApplyBoundaryConditions(Grid& grid);
+void InitialConditions(SphericalGrid& grid);
+void ApplyBoundaryConditions(SphericalGrid& grid);
 
-void RKIntegrator(Grid& grid, double dt);
+void RKIntegrator(SphericalGrid& grid, double dt);
 #endif //FLUID_SIMULATION_SIMULATION_H

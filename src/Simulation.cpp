@@ -56,18 +56,18 @@ Cell F(Cell DX,Cell DY,Cell U)
     Cell DZ=Cell::zeros();
 
 
-    double p = gamma * (U.E - 1.0/2 * U.rho* (U.vx * U.vx + U.vy * U.vy + U.vz * U.vz)
+    double p = (gamma-1) * (U.E - 1.0/2 * U.rho* (U.vx * U.vx + U.vy * U.vy + U.vz * U.vz)
                         - 1.0/(2*mu)*(U.Bx*U.Bx + U.By*U.By + U.Bz * U.Bz));
 
-    double pdx =  gamma * (DX.E - DX.rho * (U.vx * U.vx + U.vy * U.vy + U.vz * U.vz) / 2
+    double pdx =  (gamma-1) * (DX.E - DX.rho * (U.vx * U.vx + U.vy * U.vy + U.vz * U.vz) / 2
                            - U.rho * (DX.vx * U.vx + DX.vy * U.vy + DX.vz * U.vz)
                            - (DX.Bx * U.Bx + DX.By * U.By + DX.Bz * U.Bz)/mu) ;
 
-    double pdy =  gamma * (DY.E - DY.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz) / 2
+    double pdy =  (gamma-1) * (DY.E - DY.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz) / 2
                            - U.rho * (DY.vx * U.vx + DY.vy * U.vy + DY.vz * U.vz)
                            - (DY.Bx * U.Bx + DY.By * U.By + DY.Bz * U.Bz)/mu) ;
 
-    double pdz =  gamma * (DZ.E - DZ.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz) / 2
+    double pdz =  (gamma-1) * (DZ.E - DZ.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz) / 2
                            - U.rho * (DZ.vx * U.vx + DZ.vy * U.vy + DZ.vz * U.vz)
                            - (DZ.Bx * U.Bx + DZ.By * U.By + DZ.Bz * U.Bz)/mu) ;
 
@@ -92,7 +92,7 @@ Cell F(Cell DX,Cell DY,Cell U)
                    -2 * U.Bx*DX.Bx / mu
                    -(DY.Bx * U.By + U.Bx * DY.By) / mu
                    -(DZ.Bx * U.Bz + U.Bx * DZ.Bz) / mu
-                   -drhodt * U.vx);/// U.rho;
+                   -drhodt * U.vx);//* U.rho;
 
 
     double dvydt = (DX.rho * U.vx * U.vy + U.rho * DX.vx * U.vy + U.rho * U.vx * DX.vy
@@ -102,7 +102,7 @@ Cell F(Cell DX,Cell DY,Cell U)
                    -(DX.Bx * U.By + U.Bx * DX.By) / mu
                    -2 * U.By * DY.By / mu
                    -(DZ.Bz * U.By + U.Bz * DZ.By) / mu
-                   -drhodt * U.vy);///U.rho;
+                   -drhodt * U.vy);//*U.rho;
 
     double dvzdt = (DX.rho * U.vx * U.vz + U.rho * DX.vx * U.vz + U.rho * U.vx * DX.vz
                    +DY.rho * U.vy * U.vz + U.rho * DY.vy * U.vz + U.rho * U.vy * DY.vz
@@ -111,7 +111,7 @@ Cell F(Cell DX,Cell DY,Cell U)
                    -(DX.Bx * U.Bz + U.Bx * DX.Bz) / mu
                    -(DY.By * U.Bz + U.By * DY.Bz) / mu
                    -2 * U.Bz * DZ.Bz / mu
-                   -drhodt * U.vz);// / U.rho;
+                   -drhodt * U.vz);// * U.rho;
 
     double dBxdt =  DY.vx * U.By + DY.By * U.vx
                     - DY.vy * U.Bx - DY.Bx * U.vy
@@ -157,7 +157,7 @@ Cell F(Cell DX,Cell DY,Cell U)
 }
 
 double maxSpeed(Cell U){
-    double p = gamma * (U.E - 1.0/2*U.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
+    double p = (gamma-1) * (U.E - 1.0/2*U.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
                         - 1.0/2*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz));
     double P = p + 1.0/2*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz);
 
@@ -165,61 +165,62 @@ double maxSpeed(Cell U){
     double B = std::sqrt(B_2);
 
     double cmax =
-            std::sqrt(std::abs(U.vx)*std::abs(U.vx) + std::abs(U.vy)*std::abs(U.vy) + std::abs(U.vz)*std::abs(U.vz))
-            + 1.0/2*((gamma*p + B_2)/U.rho
-            + std::sqrt(((gamma + B)/U.rho) * ((gamma + B)/U.rho) - 4*(gamma*U.Bx*U.Bx)/U.rho*U.rho));
+            std::sqrt(U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
+            + 0.5*((gamma * p + B_2)/U.rho
+            + std::sqrt(((gamma + B)/U.rho) * ((gamma + B)/U.rho) - 4*(gamma*U.Bx*U.Bx)/(U.rho*U.rho)));
 
-    return cmax;
+    return cmax*DT/CELL_SIZE;
 }
 
 
-void CalculateFlux(Grid& out, Grid& in)
+void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, SphericalGrid& in)
 {
-    for(int y = 0; y < in.sizeY; y++){
-        unsigned int y_1= (y-1+in.sizeY)%(int)in.sizeY;
-        unsigned int y1= (y+1+in.sizeY)%(int)in.sizeY;
-        unsigned int y_2= (y-2+in.sizeY)%(int)in.sizeY;
-        for (int x = 0; x < in.sizeX; x++) // 2->n ??
-        {
-            //r_i= (u{i} - u{i-1}) / (u{i+1}-u{i})   r_P = (P - E) / (W - P)
-            unsigned int x_1= (x-1+in.sizeX)%(int)in.sizeX;
-            unsigned int x1= (x+1+in.sizeX)%(int)in.sizeX;
-            unsigned int x_2= (x-2+in.sizeX)%(int)in.sizeX;
+    for(int theta = 0; theta < in.getSizeTheta(); theta++) {
+        for (int r = 0; r < in.getSizeR(); r++) {
+            for (int phi = 0; phi < in.getSizePhi(); phi++) // 2->n ??
+            {
+                auto rR_current = (in.getCell(r,phi,theta) - in.getCell(r-1,phi,theta)) / nonZeroDenom(in.getCell(r+1,phi,theta) - in.getCell(r,phi,theta));
+                auto rR_prev = (in.getCell(r-1,phi,theta) - in.getCell(r-2,phi,theta)) / nonZeroDenom(in.getCell(r,phi,theta) - in.getCell(r-1,phi,theta));
 
-            auto rx_current = (in.mesh[x][y]     - in.mesh[x_1][y]) / nonZeroDenom( in.mesh[x1][y]- in.mesh[x][y]);
-            auto rx_prev =    (in.mesh[x_1][y] - in.mesh[x_2][y]) / nonZeroDenom(in.mesh[x][y] - in.mesh[x_1][y]);
+                auto rphi_current = (in.getCell(r,phi,theta) - in.getCell(r,phi-1,theta)) / nonZeroDenom(in.getCell(r,phi+1,theta) - in.getCell(r,phi,theta));
+                auto rphi_prev = (in.getCell(r,phi-1,theta) - in.getCell(r,phi-2,theta)) / nonZeroDenom(in.getCell(r,phi,theta) - in.getCell(r,phi-1,theta));
 
-            auto ry_current = (in.mesh[x][y]   - in.mesh[x][y_1]) / nonZeroDenom(in.mesh[x][y1] - in.mesh[x][y]);
-            auto ry_prev =    (in.mesh[x][y_1] - in.mesh[x][y_2]) / nonZeroDenom(in.mesh[x][y] - in.mesh[x][y_1]);
-            /* uL{i-0.5} = u{i-1} + 0.5 * phi(r{i-1}) * (u{i} - u{i - 1})
-             uL{P} = E + 0.5 * phi * (P - E)
-             uR{i-0.5} = u{i} - 0.5 * phi(r{i}) * (u{i+1} - u{i})
-             uR{P} = P - 0.5 * phi * (W - P)
-             phi - slope limiter*/
+                auto rtheta_current = (in.getCell(r,phi,theta) - in.getCell(r,phi,theta-1)) / nonZeroDenom(in.getCell(r,phi,theta+1) - in.getCell(r,phi,theta));
+                auto rtheta_prev = (in.getCell(r,phi,theta-1) - in.getCell(r,phi,theta-2)) / nonZeroDenom(in.getCell(r,phi,theta) - in.getCell(r,phi,theta-1));
 
-            auto uL_x = in.mesh[x_1][y] + 0.5 * SlopeLim(rx_prev) * (in.mesh[x][y] - in.mesh[x_1][y]);
-            auto uR_x = in.mesh[x][y]   - 0.5 * SlopeLim(rx_current)   * (in.mesh[x1][y] - in.mesh[x][y]);
+                auto uL_R = in.getCell(r-1,phi,theta) + 0.5 * SlopeLim(rR_prev) * (in.getCell(r,phi,theta) - in.getCell(r-1,phi,theta));
+                auto uR_R = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rR_current) * (in.getCell(r+1,phi,theta) - in.getCell(r,phi,theta));
 
-            auto uL_y = in.mesh[x][y_1] + 0.5 * SlopeLim(ry_prev) * (in.mesh[x][y] - in.mesh[x][y_1]);
-            auto uR_y = in.mesh[x][y]   - 0.5 * SlopeLim(ry_current)   * (in.mesh[x][y1] - in.mesh[x][y]);
+                auto uL_phi = in.getCell(r,phi-1,theta) + 0.5 * SlopeLim(rphi_prev) * (in.getCell(r,phi,theta) - in.getCell(r,phi-1,theta));
+                auto uR_phi = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rphi_current) * (in.getCell(r,phi+1,theta) - in.getCell(r,phi,theta));
 
-            //eigenvalues? -> max speed a
+                auto uL_theta = in.getCell(r,phi,theta-1) + 0.5 * SlopeLim(rtheta_prev) * (in.getCell(r,phi,theta) - in.getCell(r,phi,theta-1));
+                auto uR_theta = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rtheta_current) * (in.getCell(r,phi,theta+1) - in.getCell(r,phi,theta));
+
 #if defined(USE_CONST_A)
-            double a = A_SPEED;
+                double aR = A_SPEED;
+                double aphi = A_SPEED;
+                double atheta = A_SPEED;
 #else
-            double a = maxSpeed(in.mesh[x][y]);
+                double aR = maxSpeed(0.5 * (uL_R + uR_R));
+                double aphi = maxSpeed(0.5 * (uL_phi + uR_phi));
+                double atheta = maxSpeed(0.5 * (uL_theta + uR_theta));
 #endif
 
 
-            //std::cout << a << std::endl;
-            // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
-            out.mesh[x][y] =     (0.5 * (F(uR_x, Cell::zeros(),in.mesh[x][y]) + F(uL_x, Cell::zeros(),in.mesh[x][y]) - a * (uR_x - uL_x)));
-            out.fluxMesh[x][y] = (0.5 * (F(Cell::zeros(), uR_y,in.mesh[x][y]) + F(Cell::zeros(), uL_y,in.mesh[x][y]) - a * (uR_y - uL_y)));
+                //std::cout << a << std::endl;
+                // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
+                std::get<0>(out).getCellRef(r,phi,theta) = (0.5 * (F(uR_R, Cell::zeros(), in.getCell(r,phi,theta)) + F(uL_R, Cell::zeros(), in.getCell(r,phi,theta)) -
+                        aR * (uR_R - uL_R)));
+                std::get<1>(out).getCellRef(r,phi,theta) = (0.5 * (F(uR_phi, Cell::zeros(), in.getCell(r,phi,theta)) + F(uL_phi, Cell::zeros(), in.getCell(r,phi,theta)) -
+                                                                aphi * (uR_phi - uL_phi)));
+                std::get<2>(out).getCellRef(r,phi,theta) = (0.5 * (F(uR_theta, Cell::zeros(), in.getCell(r,phi,theta)) + F(uL_theta, Cell::zeros(), in.getCell(r,phi,theta)) -
+                                                                atheta * (uR_theta - uL_theta)));
+
+            }
 
         }
-
     }
-
 }
 
 Cell S(int x,int y,Cell val)
@@ -229,9 +230,9 @@ Cell S(int x,int y,Cell val)
     else return {0,0,0,0};
 }
 
-void InitialConditions(Grid& grid) {
-    for (int x = 0; x < grid.sizeX; x++) {
-        for (int y = 0; y < grid.sizeY; y++) {
+void InitialConditions(SphericalGrid& grid) {
+    for (int x = 0; x < grid.getSizeR(); x++) {
+        for (int y = 0; y < grid.getSizePhi(); y++) {
             double rho=0.01;
             double vx=0;
             double vy=0;
@@ -244,29 +245,29 @@ void InitialConditions(Grid& grid) {
             //        for (int x = 20; x < 40; x++){
             if(x>20 && x< 40 && y>45 && y<55)
             {
-                rho=0.03;
+                rho=0.08*std::cos((x-30.0)/10);
                 vx=0;
             }
 
 
             //nk=rho/m m=1.6733e-27
             //k=1.38044e-23
-            double E = 3 * rho * m_div_k * T
+            double E = 2 * rho * m_div_k * T/(gamma-1)
                     + rho * (vx*vx + vy*vy + vz*vz)
                     + (Bx*Bx + By*By + Bz*Bz) /(2*mu);
 
-            grid.mesh[x][y] = {rho, vx, vy, vz,Bx,By,Bz,E};
+            grid.getCellRef(x,y,0) = {rho, vx, vy, vz,Bx,By,Bz,E};
 
         }
     }
 }
 
 
-void ApplyBoundaryConditions(Grid& grid)
+void ApplyBoundaryConditions(SphericalGrid& grid)
 {
-    for (int x = 20; x < 40; x++){
+    /*for (int x = 20; x < 40; x++){
         for (int y = 45; y < 55; y++){
-            double rho = 0.03;
+            double rho = 0.02;
             double vx = 0;
             double vy = 0;
             double vz = 0;
@@ -275,53 +276,88 @@ void ApplyBoundaryConditions(Grid& grid)
             double Bz = 0.000;
             double T = 273;
 
-            double E = 3 * rho * m_div_k * T
-                       + rho * (vx * vx + vy * vy + vz * vz)
-                       + (Bx * Bx + By * By + Bz * Bz) / (2 * mu);
+            double E = 2 * rho * m_div_k * T/(gamma-1)
+                       + rho * (vx*vx + vy*vy + vz*vz)
+                       + (Bx*Bx + By*By + Bz*Bz) /(2*mu);
 
             grid.mesh[x][y].rho = rho;
             grid.mesh[x][y].E = E;
         }
     }
-
+*/
     /*for (int y=0;y<grid.sizeY;y++) {
-        grid.mesh[0][y]=grid.mesh[1][y];
-        grid.mesh[grid.sizeX][y]=grid.mesh[grid.sizeX-2][y];
+        double rho = 0.01;
+        double vx = 0;
+        double vy = 0;
+        double vz = 0;
+        double Bx = 0.000;
+        double By = 0.000;
+        double Bz = 0.000;
+        double T = 273;
 
+        double E = 2 * rho * m_div_k * T/(gamma-1)
+                   + rho * (vx*vx + vy*vy + vz*vz)
+                   + (Bx*Bx + By*By + Bz*Bz) /(2*mu);
+
+        grid.mesh[0][y].rho=rho;
+        grid.mesh[0][y].E=E;
+        grid.mesh[grid.sizeX][y].rho=rho;
+        grid.mesh[grid.sizeX][y].E=E;
     }
     for (int x=0;x<grid.sizeX;x++) {
-        grid.mesh[x][0]=grid.mesh[x][1];
-        grid.mesh[x][grid.sizeY-1]=grid.mesh[x][grid.sizeY-2];
+        double rho = 0.01;
+        double vx = 0;
+        double vy = 0;
+        double vz = 0;
+        double Bx = 0.000;
+        double By = 0.000;
+        double Bz = 0.000;
+        double T = 273;
+
+        double E = 2 * rho * m_div_k * T/(gamma-1)
+                   + rho * (vx*vx + vy*vy + vz*vz)
+                   + (Bx*Bx + By*By + Bz*Bz) /(2*mu);
+
+
+        grid.mesh[x][0].rho=rho;
+        grid.mesh[x][0].E=E;
+        grid.mesh[x][grid.sizeY].rho=rho;
+        grid.mesh[x][grid.sizeY].E=E;
+
     }*/
 }
 
 
 
-void RKIntegrator(Grid& grid, double dt)
+void RKIntegrator(SphericalGrid& grid, double dt)
 {
-    double dx = 1;
-    Grid flux(grid.sizeX,grid.sizeY);
-    flux.fluxMeshInit();
+    double dx = CELL_SIZE;
+    SphericalGrid fluxR = SphericalGrid::copyGrid(grid);
+    SphericalGrid fluxPhi = SphericalGrid::copyGrid(grid);
+    SphericalGrid fluxTheta = SphericalGrid::copyGrid(grid);
+    std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> flux(fluxR,fluxPhi,fluxTheta);
     CalculateFlux(flux,grid);
-    Grid k(grid.sizeX,grid.sizeY);
-    for (int y = 0; y < grid.sizeY; y++)
-    {
-        unsigned int y1= (y+1+grid.sizeY)%(int)grid.sizeY;
-        for (int x = 0; x < grid.sizeX; x++)
-        {
-            unsigned int x1= (x+1+grid.sizeX)%(int)grid.sizeX;
-            k.mesh[x][y] = grid.mesh[x][y] - 0.5 * dt / dx * (flux.mesh[x1][y]+ flux.fluxMesh[x][y1] - flux.mesh[x][y] - flux.fluxMesh[x][y]) +0.5*dt * S(x,y,grid.mesh[x][y]);
+    SphericalGrid k = SphericalGrid::copyGrid(grid);
+    for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
+        for (int r = 0; r < grid.getSizeR(); r++) {
+            for (int phi = 0; phi < grid.getSizePhi(); phi++) {
+                k.getCellRef(r,phi,theta) = grid.getCell(r,phi,theta) - 0.5 * dt / dx *
+                                                 (std::get<0>(flux).getCell(r,phi+1,theta) - std::get<0>(flux).getCell(r,phi,theta) +
+                                                  std::get<1>(flux).getCell(r+1,phi,theta) - std::get<1>(flux).getCell(r,phi,theta))
+                                                  + 0.5 * dt * S(phi, r, grid.getCell(r,phi,theta));
+            }
         }
     }
     ApplyBoundaryConditions(k);
     CalculateFlux(flux, k);
-    for (int y = 0; y < grid.sizeY; y++)
-    {
-        unsigned int y1= (y+1+grid.sizeY)%(int)grid.sizeY;
-        for (int x = 0; x < grid.sizeX; x++)
-        {
-            unsigned int x1= (x+1+grid.sizeX)%(int)grid.sizeX;
-            grid.mesh[x][y] = grid.mesh[x][y] - dt / dx * (flux.mesh[x1][y]+ flux.fluxMesh[x][y1] - flux.mesh[x][y] - flux.fluxMesh[x][y]) + dt * S(x,y,grid.mesh[x][y]);
+    for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
+        for (int r = 0; r < grid.getSizeR(); r++) {
+            for (int phi = 0; phi < grid.getSizePhi(); phi++) {
+                grid.getCellRef(r,phi,theta) = k.getCell(r,phi,theta) - dt / dx *
+                                                                        (std::get<0>(flux).getCell(r,phi+1,theta) - std::get<0>(flux).getCell(r,phi,theta) +
+                                                                         std::get<1>(flux).getCell(r+1,phi,theta) - std::get<1>(flux).getCell(r,phi,theta))
+                                                                    +  dt * S(phi, r, grid.getCell(r,phi,theta));
+            }
         }
     }
     ApplyBoundaryConditions(grid);

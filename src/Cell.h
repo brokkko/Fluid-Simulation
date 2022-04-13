@@ -1,7 +1,6 @@
 #ifndef FLUID_SIMULATION_CELL_H
 #define FLUID_SIMULATION_CELL_H
 #include <iostream>
-#endif //FLUID_SIMULATION_CELL_H
 
 struct Cell
 {
@@ -22,3 +21,8 @@ struct Cell
     Cell operator/(double r) const;
     friend Cell operator*(double l, Cell r);
 };
+
+
+
+#endif //FLUID_SIMULATION_CELL_H
+

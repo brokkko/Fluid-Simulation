@@ -5,6 +5,7 @@
 #include "src/Graphics.h"
 #include "src/Grid.h"
 #include "src/Simulation.h"
+#include "src/Constants.h"
 // dU/dt = a*dU/dx
 
 
@@ -17,10 +18,10 @@ int main()
     sf::RenderWindow window(sf::VideoMode(700, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
     window.setActive(true);
     window.setFramerateLimit(60);
-    Grid grid(70,70);
+    //Grid grid(70,70);
+    SphericalGrid grid(70,70,1,1,10,M_PI_2);
     InitialConditions(grid);
-
-    double h = 0.0005;
+//grid.Fill(10);
     sf::View w;
     w = window.getDefaultView();
     w.setCenter(0, 0);
@@ -31,7 +32,9 @@ int main()
     sf::Text t;
     t.setFont(f);
     t.setCharacterSize(12);
-    t.setFillColor(sf::Color::Magenta);
+    t.setFillColor(sf::Color::White);
+    t.setOutlineColor(sf::Color::Black);
+    t.setOutlineThickness(1);
 
     while (window.isOpen()) {
         sf::Event event;
@@ -60,18 +63,13 @@ int main()
         window.clear(sf::Color::Black);
         if (!paused) {
             for (int i = 0; i < 1; i++)
-                RKIntegrator(grid, h);
+            {
+                RKIntegrator(grid, DT);
+            }
+
         }
         double sum = 0;
         double vel = 0;
-        for (int y = 0; y < grid.sizeY; y++)
-        {
-            for (int x = 0; x < grid.sizeX; x++){
-                sum += grid.mesh[x][y].E;
-            }
-        }
-        //printf("E = %0.10e\n",sum);
-        // printf("vel = %0.10e\n",vel);
 
         show(grid, window,t,upperbound[currentmode],currentmode);
 
