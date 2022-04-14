@@ -6,77 +6,77 @@ Cell Cell::zeros() {
 
 Cell Cell::operator+(const Cell r) const {
     return Cell{ rho + r.rho ,
-                 vx + r.vx,
-                 vy + r.vy,
-                 vz + r.vy,
-                 Bx+r.Bx,
-                 By+r.By,
-                 Bz+r.Bz,
+                 rhoVr + r.rhoVr,
+                 rhoVphi + r.rhoVphi,
+                 rhoVtheta + r.rhoVphi,
+                 Br + r.Br,
+                 Bphi + r.Bphi,
+                 Btheta + r.Btheta,
                  E+r.E,};
 }
 
 Cell Cell::operator-(const Cell r) const {
     return Cell{ rho - r.rho ,
-                 vx - r.vx,
-                 vy - r.vy,
-                 vz - r.vy,
-                 Bx - r.Bx,
-                 By - r.By,
-                 Bz - r.Bz,
+                 rhoVr - r.rhoVr,
+                 rhoVphi - r.rhoVphi,
+                 rhoVtheta - r.rhoVphi,
+                 Br - r.Br,
+                 Bphi - r.Bphi,
+                 Btheta - r.Btheta,
                  E - r.E,};
 }
 
 Cell Cell::operator*(const Cell r) const {
     return Cell{ rho * r.rho ,
-                 vx * r.vx,
-                 vy * r.vy,
-                 vz * r.vy,
-                 Bx * r.Bx,
-                 By * r.By,
-                 Bz * r.Bz,
+                 rhoVr * r.rhoVr,
+                 rhoVphi * r.rhoVphi,
+                 rhoVtheta * r.rhoVphi,
+                 Br * r.Br,
+                 Bphi * r.Bphi,
+                 Btheta * r.Btheta,
                  E * r.E,};
 }
 
 Cell Cell::operator/(const Cell r) const {
     return Cell{ rho / r.rho ,
-                 vx / r.vx,
-                 vy / r.vy,
-                 vz / r.vy,
-                 Bx / r.Bx,
-                 By / r.By,
-                 Bz / r.Bz,
+                 rhoVr / r.rhoVr,
+                 rhoVphi / r.rhoVphi,
+                 rhoVtheta / r.rhoVphi,
+                 Br / r.Br,
+                 Bphi / r.Bphi,
+                 Btheta / r.Btheta,
                  E / r.E,};
 }
 
 Cell Cell::operator*(const double r) const {
     return Cell{ rho * r ,
-                 vx * r,
-                 vy * r,
-                 vz * r,
-                 Bx * r,
-                 By * r,
-                 Bz * r,
+                 rhoVr * r,
+                 rhoVphi * r,
+                 rhoVtheta * r,
+                 Br * r,
+                 Bphi * r,
+                 Btheta * r,
                  E * r};
 }
 
 Cell Cell::operator/(const double r) const {
     return Cell{ rho / r ,
-                 vx / r,
-                 vy / r,
-                 vz / r,
-                 Bx / r,
-                 By / r,
-                 Bz / r,
+                 rhoVr / r,
+                 rhoVphi / r,
+                 rhoVtheta / r,
+                 Br / r,
+                 Bphi / r,
+                 Btheta / r,
                  E / r};
 }
 
 Cell operator*(const double l, const Cell r) {
     return Cell{ l*r.rho ,
-                 l*r.vx ,
-                 l*r.vy ,
-                 l*r.vz ,
-                 l*r.Bx ,
-                 l*r.By ,
-                 l*r.Bz ,
+                 l*r.rhoVr ,
+                 l*r.rhoVphi ,
+                 l*r.rhoVtheta ,
+                 l*r.Br ,
+                 l*r.Bphi ,
+                 l*r.Btheta ,
                  l*r.E};
 }

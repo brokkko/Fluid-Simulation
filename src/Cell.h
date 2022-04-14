@@ -5,12 +5,12 @@
 struct Cell
 {
     double rho;
-    double vx;
-    double vy;
-    double vz;
-    double Bx;
-    double By;
-    double Bz;
+    double rhoVr;
+    double rhoVphi;
+    double rhoVtheta;
+    double Br;
+    double Bphi;
+    double Btheta;
     double E;
     static Cell zeros();
     Cell operator+(Cell r) const;

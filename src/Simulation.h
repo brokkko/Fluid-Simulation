@@ -13,7 +13,7 @@ double nonZeroDouble(double val);
 
 Cell nonZeroDenom(Cell denom);
 
-Cell F(Cell DX,Cell DY,Cell U);
+Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double theta);
 
 void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, Grid& in);
 

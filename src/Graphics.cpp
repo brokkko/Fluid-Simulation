@@ -90,9 +90,9 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
             double radius=upperbound;
 
             Cell U =grid.mesh[x][y];
-            double p = gamma * (U.E - 1.0/2*U.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
-                                - 1.0/(2*mu)*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz));
-            double P = p + (U.Bx * U.Bx + U.By * U.By + U.Bz * U.Bz) / (2 * mu);
+            double p = gamma * (U.E - 1.0/2*U.rho* (U.rhoVr * U.rhoVr + U.rhoVphi * U.rhoVphi + U.rhoVtheta * U.rhoVtheta)
+                                - 1.0/(2*mu)*(U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
+            double P = p + (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta) / (2 * mu);
             double displayvar=0;
             if (mode<8)
                 displayvar=reinterpret_cast<double*>(&U)[mode];
@@ -105,7 +105,7 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
             if (x%5 ==0 && y % 5 ==0)
             {
                 auto vec=sf::Vector2f(  float(x* segmentX)- (float)windowsizeX/2, float(y* segmentY)- (float)windowsizeY/2);
-                sf::Vector2f dir={(float)grid.mesh[x][y].vx*ARROW_LEN_MULT,(float)grid.mesh[x][y].vy*ARROW_LEN_MULT};
+                sf::Vector2f dir={(float)grid.mesh[x][y].rhoVr * ARROW_LEN_MULT, (float)grid.mesh[x][y].rhoVphi * ARROW_LEN_MULT};
                 l[2*(x/5+y/5*grid.sizeX/5)] = sf::Vertex(vec,sf::Color::Black);
                 l[2*(x/5+y/5*grid.sizeX/5)+1]=  sf::Vertex(vec+dir,sf::Color::Black);
 
@@ -125,9 +125,9 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
     window.draw(varry, grid.sizeY, sf::LinesStrip);
 
     Cell U =grid.mesh[mposx][mposy];
-    double p = gamma * (U.E - 1.0/2*U.rho* (U.vx*U.vx + U.vy*U.vy + U.vz*U.vz)
-                        - 1.0/(2*mu)*(U.Bx*U.Bx + U.By*U.By + U.Bz*U.Bz));
-    double P = p + (U.Bx * U.Bx + U.By * U.By + U.Bz * U.Bz) / (2 * mu);
+    double p = gamma * (U.E - 1.0/2*U.rho* (U.rhoVr * U.rhoVr + U.rhoVphi * U.rhoVphi + U.rhoVtheta * U.rhoVtheta)
+                        - 1.0/(2*mu)*(U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
+    double P = p + (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta) / (2 * mu);
 
 
     double sum=0;
@@ -151,7 +151,7 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
     t.setPosition(window.mapPixelToCoords( {mPos.x,mPos.y+20}));
     window.draw(t);
 
-    std::string names[] ={"RHO","Vx","Vy","Vz","Bx","By","Bz","E","P"};
+    std::string names[] ={"RHO","Vx","Vy","Vz","Br","Bphi","Btheta","E","P"};
     ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode]<<" sum: "<<sum;
     t.setString(ss2.str());
     t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
