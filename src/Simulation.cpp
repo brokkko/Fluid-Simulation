@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <tuple>
 #include "Simulation.h"
 #include "Constants.h"
 
@@ -143,6 +144,24 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double thet
                    + 1.0/(r*std::sin(theta)*mu) * (Dphi.Bphi*(U.Br*Vr+U.Btheta*Vtheta+U.Bphi*Vphi)
                         + U.Bphi*((Dphi.Br*Vr + U.Br*Vrdphi/U.rho)+(Dphi.Btheta*Vtheta + U.Btheta*Vthetadphi/U.rho)+(Dphi.Bphi*Vphi + U.Bphi*Vphidphi/U.rho)))
                          );
+
+    double Brdt = 1.0/(r*std::sin(theta))*(std::cos(theta)*U.Br*Vtheta + std::sin(theta)*(Dtheta.Br*Vtheta + U.Br*Vthetadtheta/U.rho))
+                + 1.0/(r*std::sin(theta))*(Dphi.Br*Vphi + U.Br*Vphidphi/U.rho)
+                - (  1.0/(r*std::sin(theta))*(std::cos(theta)*U.Btheta*Vr + std::sin(theta)*(Dtheta.Btheta*Vr + U.Btheta*Vrdtheta/U.rho))
+                   + 1.0/(r*std::sin(theta))*(Dphi.Bphi*Vr + U.Bphi*Vrdphi/U.rho)
+                   );
+
+    double Bthetadt = 1.0/r *(U.Btheta*Vr + r*(Dr.Btheta*Vr + U.Btheta*Vrdr/U.rho))
+                    + 1.0/(r*std::sin(theta))*(Dphi.Btheta*Vphi + U.Btheta*Vphidphi/U.rho)
+                    - (  1.0/r *(U.Br*Vtheta + r*(Dr.Br*Vtheta + U.Br*Vthetadr/U.rho))
+                       + 1.0/(r*std::sin(theta))*(Dphi.Bphi*Vtheta + U.Bphi*Vthetadphi/U.rho)
+                       );
+
+    double Bphidt = 1.0/r *(U.Bphi*Vr + r*(Dr.Bphi*Vr + U.Bphi*Vrdr/U.rho))
+                  + 1.0/r *(Dtheta.Bphi*Vtheta + U.Bphi*Vthetadtheta/U.rho)
+                  - (  1.0/r *(U.Br*Vphi + r*(Dr.Br*Vphi + U.Br*Vphidr/U.rho))
+                     + 1.0/r *(Dtheta.Btheta*Vphi + U.Btheta*Vphidtheta/U.rho)
+                  );
 
 
     return Cell{drhodt,
