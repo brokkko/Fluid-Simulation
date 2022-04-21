@@ -6,9 +6,9 @@ Cell Cell::zeros() {
 
 Cell Cell::operator+(const Cell r) const {
     return Cell{ rho + r.rho ,
-                 rhoVr + r.rhoVr,
-                 rhoVphi + r.rhoVphi,
-                 rhoVtheta + r.rhoVphi,
+                 Vr + r.Vr,
+                 Vphi + r.Vphi,
+                 Vtheta + r.Vphi,
                  Br + r.Br,
                  Bphi + r.Bphi,
                  Btheta + r.Btheta,
@@ -17,9 +17,9 @@ Cell Cell::operator+(const Cell r) const {
 
 Cell Cell::operator-(const Cell r) const {
     return Cell{ rho - r.rho ,
-                 rhoVr - r.rhoVr,
-                 rhoVphi - r.rhoVphi,
-                 rhoVtheta - r.rhoVphi,
+                 Vr - r.Vr,
+                 Vphi - r.Vphi,
+                 Vtheta - r.Vphi,
                  Br - r.Br,
                  Bphi - r.Bphi,
                  Btheta - r.Btheta,
@@ -28,9 +28,9 @@ Cell Cell::operator-(const Cell r) const {
 
 Cell Cell::operator*(const Cell r) const {
     return Cell{ rho * r.rho ,
-                 rhoVr * r.rhoVr,
-                 rhoVphi * r.rhoVphi,
-                 rhoVtheta * r.rhoVphi,
+                 Vr * r.Vr,
+                 Vphi * r.Vphi,
+                 Vtheta * r.Vphi,
                  Br * r.Br,
                  Bphi * r.Bphi,
                  Btheta * r.Btheta,
@@ -39,9 +39,9 @@ Cell Cell::operator*(const Cell r) const {
 
 Cell Cell::operator/(const Cell r) const {
     return Cell{ rho / r.rho ,
-                 rhoVr / r.rhoVr,
-                 rhoVphi / r.rhoVphi,
-                 rhoVtheta / r.rhoVphi,
+                 Vr / r.Vr,
+                 Vphi / r.Vphi,
+                 Vtheta / r.Vphi,
                  Br / r.Br,
                  Bphi / r.Bphi,
                  Btheta / r.Btheta,
@@ -50,9 +50,9 @@ Cell Cell::operator/(const Cell r) const {
 
 Cell Cell::operator*(const double r) const {
     return Cell{ rho * r ,
-                 rhoVr * r,
-                 rhoVphi * r,
-                 rhoVtheta * r,
+                 Vr * r,
+                 Vphi * r,
+                 Vtheta * r,
                  Br * r,
                  Bphi * r,
                  Btheta * r,
@@ -61,9 +61,9 @@ Cell Cell::operator*(const double r) const {
 
 Cell Cell::operator/(const double r) const {
     return Cell{ rho / r ,
-                 rhoVr / r,
-                 rhoVphi / r,
-                 rhoVtheta / r,
+                 Vr / r,
+                 Vphi / r,
+                 Vtheta / r,
                  Br / r,
                  Bphi / r,
                  Btheta / r,
@@ -72,9 +72,9 @@ Cell Cell::operator/(const double r) const {
 
 Cell operator*(const double l, const Cell r) {
     return Cell{ l*r.rho ,
-                 l*r.rhoVr ,
-                 l*r.rhoVphi ,
-                 l*r.rhoVtheta ,
+                 l*r.Vr ,
+                 l*r.Vphi ,
+                 l*r.Vtheta ,
                  l*r.Br ,
                  l*r.Bphi ,
                  l*r.Btheta ,

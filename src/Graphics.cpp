@@ -52,13 +52,13 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             double radius=upperbound;
 
             Cell U =grid.getCell(x,y,0);
-            double Vr = U.rhoVr/U.rho;
-            double Vtheta = U.rhoVtheta / U.rho;
-            double Vphi = U.rhoVphi / U.rho;
+            double Vr = U.Vr / U.rho;
+            double Vtheta = U.Vtheta / U.rho;
+            double Vphi = U.Vphi / U.rho;
             double p = gamma * (U.E - 0.5 * U.rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
                                 - 0.5/mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
 
-            double displayvar =U.rho;
+            double displayvar =U.rho/std::pow(grid.getRFromIndex(x),2);;
             r.setFillColor(toColor(displayvar,0,radius));
 
             r.setRotation((float)grid.getPhiFromIndex(y)/(2*M_PI)*360);
@@ -108,7 +108,7 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
             double radius=upperbound;
 
             Cell U =grid.mesh[x][y];
-            double p = gamma * (U.E - 1.0/2*U.rho* (U.rhoVr * U.rhoVr + U.rhoVphi * U.rhoVphi + U.rhoVtheta * U.rhoVtheta)
+            double p = gamma * (U.E - 1.0/2*U.rho* (U.Vr * U.Vr + U.Vphi * U.Vphi + U.Vtheta * U.Vtheta)
                                 - 1.0/(2*mu)*(U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
             double P = p + (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta) / (2 * mu);
             double displayvar=0;
@@ -123,7 +123,7 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
             if (x%5 ==0 && y % 5 ==0)
             {
                 auto vec=sf::Vector2f(  float(x* segmentX)- (float)windowsizeX/2, float(y* segmentY)- (float)windowsizeY/2);
-                sf::Vector2f dir={(float)grid.mesh[x][y].rhoVr * ARROW_LEN_MULT, (float)grid.mesh[x][y].rhoVphi * ARROW_LEN_MULT};
+                sf::Vector2f dir={(float)grid.mesh[x][y].Vr * ARROW_LEN_MULT, (float)grid.mesh[x][y].Vphi * ARROW_LEN_MULT};
                 l[2*(x/5+y/5*grid.sizeX/5)] = sf::Vertex(vec,sf::Color::Black);
                 l[2*(x/5+y/5*grid.sizeX/5)+1]=  sf::Vertex(vec+dir,sf::Color::Black);
 
@@ -143,7 +143,7 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
     window.draw(varry, grid.sizeY, sf::LinesStrip);
 
     Cell U =grid.mesh[mposx][mposy];
-    double p = gamma * (U.E - 1.0/2*U.rho* (U.rhoVr * U.rhoVr + U.rhoVphi * U.rhoVphi + U.rhoVtheta * U.rhoVtheta)
+    double p = gamma * (U.E - 1.0/2*U.rho* (U.Vr * U.Vr + U.Vphi * U.Vphi + U.Vtheta * U.Vtheta)
                         - 1.0/(2*mu)*(U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
     double P = p + (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta) / (2 * mu);
 

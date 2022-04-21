@@ -5,9 +5,9 @@
 struct Cell
 {
     double rho;
-    double rhoVr;
-    double rhoVphi;
-    double rhoVtheta;
+    double Vr;
+    double Vphi;
+    double Vtheta;
     double Br;
     double Bphi;
     double Btheta;
