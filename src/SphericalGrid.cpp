@@ -17,7 +17,9 @@ SphericalGrid::SphericalGrid(unsigned int sizeR,unsigned int sizePhi,unsigned in
 
 Cell SphericalGrid::getCell(int R,int Phi,int Theta)
 {
-    if (R<0 || R>=sizeR || Phi<0 || Phi>= sizePhi || Theta<0 ||Theta >= sizeTheta) return Cell::zeros();
+    R=std::clamp(R,0,(int)sizeR-1);
+    Phi=std::clamp(Phi,0,(int)sizePhi-1);
+    Theta=std::clamp(Theta,0,(int)sizeTheta-1);
     return mesh[Phi + R*sizePhi + Theta*sizePhi*sizeR];
 }
 Cell& SphericalGrid::getCellRef(int R,int Phi,int Theta)

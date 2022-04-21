@@ -49,10 +49,16 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     double CellRSize= maxRadius / grid.getSizeR();
     for (int y = 0; y < grid.getSizePhi(); y++){
         for (int x = 0; x < grid.getSizeR(); x++){
-            double radius=0.02;
+            double radius=upperbound;
 
             Cell U =grid.getCell(x,y,0);
-            double displayvar = U.rho;
+            double Vr = U.rhoVr/U.rho;
+            double Vtheta = U.rhoVtheta / U.rho;
+            double Vphi = U.rhoVphi / U.rho;
+            double p = gamma * (U.E - 0.5 * U.rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
+                                - 0.5/mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
+
+            double displayvar =U.rho;
             r.setFillColor(toColor(displayvar,0,radius));
 
             r.setRotation((float)grid.getPhiFromIndex(y)/(2*M_PI)*360);
@@ -61,6 +67,18 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             window.draw(r);
         }
     }
+
+    std::stringstream ss2;
+
+
+
+    std::string names[] ={"RHO","Vx","Vy","Vz","Br","Bphi","Btheta","E","P"};
+    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode];
+    t.setString(ss2.str());
+    t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
+    window.draw(t);
+
+
 
 }
 
