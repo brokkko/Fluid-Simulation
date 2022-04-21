@@ -3,6 +3,7 @@
 //
 
 #include "SphericalGrid.h"
+#include "Constants.h"
 
 SphericalGrid::SphericalGrid(unsigned int sizeR,unsigned int sizePhi,unsigned int sizeTheta,double minRadius,double maxRadius, double maxPolarAngle)
 {
@@ -17,9 +18,9 @@ SphericalGrid::SphericalGrid(unsigned int sizeR,unsigned int sizePhi,unsigned in
 
 Cell SphericalGrid::getCell(int R,int Phi,int Theta)
 {
-    R=std::clamp(R,0,(int)sizeR-1);
-    Phi=std::clamp(Phi,0,(int)sizePhi-1);
-    Theta=std::clamp(Theta,0,(int)sizeTheta-1);
+    R=clamp(R,0,(int)sizeR-1);
+    Phi=clamp(Phi,0,(int)sizePhi-1);
+    Theta=clamp(Theta,0,(int)sizeTheta-1);
     return mesh[Phi + R*sizePhi + Theta*sizePhi*sizeR];
 }
 Cell& SphericalGrid::getCellRef(int R,int Phi,int Theta)

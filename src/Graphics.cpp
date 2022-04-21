@@ -98,8 +98,8 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
     unsigned int windowsizeY = window.getSize().y;
     int segmentX = windowsizeX / grid.sizeX;
     int segmentY = (windowsizeY-graph_h) / grid.sizeY;
-    int mposx=std::clamp(mPos.x/segmentX,0,(int)grid.sizeX);
-    int mposy=std::clamp(mPos.y/segmentY,0,(int)grid.sizeY);
+    int mposx=clamp(mPos.x/segmentX,0,(int)grid.sizeX);
+    int mposy=clamp(mPos.y/segmentY,0,(int)grid.sizeY);
 
     sf::RectangleShape r;
     r.setSize(sf::Vector2f{float(segmentX),float(segmentY)});

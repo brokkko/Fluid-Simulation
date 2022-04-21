@@ -55,7 +55,7 @@ int main()
             }
             else if (event.type == sf::Event::MouseWheelMoved && shift) {
                 currentmode += event.mouseWheel.delta;
-                currentmode =std::clamp(currentmode,0, 8);
+                currentmode = clamp(currentmode,0, 8);
             }
         }
 

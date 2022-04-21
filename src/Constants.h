@@ -6,9 +6,10 @@
 #define FLUID_SIMULATION_CONSTANTS_H
 
 #define ctg(x) std::cos(x)/std::sin(x)
+#define clamp(x, y, z) std::max(y, std::min(x, z))
 #define DT 0.001
 #define CELL_SIZE 1
-#define COLOR_SCHEME 1
+#define COLOR_SCHEME 0
 #define mu 1.2566e-8
 #define m_div_k 8249.805773
 #define Ms 1.991e30
