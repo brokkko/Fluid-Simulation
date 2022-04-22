@@ -150,7 +150,7 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double thet
                         + U.Bphi*((Dphi.Br*U.Vr + U.Br*Dphi.Vr)+(Dphi.Btheta*U.Vtheta + U.Btheta*Dphi.Vtheta)+(Dphi.Bphi*U.Vphi + U.Bphi*Dphi.Vphi)))
                          );
 
-    if(std::abs(drhodt)>1)
+    if(std::abs(Edt)>10000)
         int a=0;
 
 
@@ -162,7 +162,7 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double thet
                 0,
                 0,
                 0,
-                0};
+                Edt};
 }
 
 double maxSpeed(Cell U){
@@ -272,8 +272,8 @@ Cell S(int x,int y,Cell val)
 void InitialConditions(SphericalGrid& grid) {
     for (int x = 0; x < grid.getSizeR(); x++) {
         for (int y = 0; y < grid.getSizePhi(); y++) {
-            double rho=0.06/std::pow(grid.getRFromIndex(x),2);
-            double vx=100;
+            double rho=0.01/std::pow(grid.getRFromIndex(x),2);
+            double vx=0;
             double vy=0;
             double vz=0;
             double Bx=0.000;
@@ -284,7 +284,7 @@ void InitialConditions(SphericalGrid& grid) {
             //        for (int x = 20; x < 40; x++){
             if(x>20 && x< 40 && y>45 && y<55)
             {
-                rho=0.06*std::cos((x-30.0)/10);
+               // rho=0.36*std::cos((x-30.0)/10);
                // vx=100;
             }
 
@@ -323,8 +323,17 @@ void ApplyBoundaryConditions(SphericalGrid& grid)
             grid.mesh[x][y].E = E;
         }
     }
-*/
-    double rho =0.01;
+*/  double vx=0;
+    double vy=0;
+    double vz=0;
+    double Bx=0.000;
+    double By=0.000;
+    double Bz=0.000;
+    double T =273;
+    double rho=0.06/std::pow(grid.getRFromIndex(1),2);
+
+
+
    /* for (int y=0;y<grid.getSizeR();y++) {
         grid.mesh[0][y].rho=rho;
         grid.mesh[0][y].E=E;
@@ -332,9 +341,23 @@ void ApplyBoundaryConditions(SphericalGrid& grid)
         grid.mesh[grid.sizeX][y].E=E;
     }*/
     for (int x=0;x<grid.getSizePhi();x++) {
+
+        if(x>60 && x< 70)
+        {
+             rho=0.1;
+             vx=1000000;
+        }
+        double E = 2 * rho * m_div_k * T/(gamma-1)
+                   + rho * (vx*vx + vy*vy + vz*vz)
+                   + (Bx*Bx + By*By + Bz*Bz) /(2*mu);
+
+
         Cell& c = grid.getCellRef(1,x,0);
         c.rho=rho;
-        c.E=10000;
+        c.E=E;
+        c.Vr=vx;
+        c.Vtheta=vz;
+        c.Vphi=vy;
         //c.Vr=0;
         //c.Vphi=0;
         //c.Vtheta=0;
@@ -345,7 +368,9 @@ void ApplyBoundaryConditions(SphericalGrid& grid)
 
 void RKIntegrator(SphericalGrid& grid, double dt)
 {
-    double dx = CELL_SIZE;
+    double dr = grid.getRFromIndex(1)-grid.getRFromIndex(0);
+    double dphi = (grid.getPhiFromIndex(1)-grid.getPhiFromIndex(0));
+    double dtheta = grid.getThetaFromIndex(1)-grid.getThetaFromIndex(0);
     SphericalGrid fluxR = SphericalGrid::copyGrid(grid);
     SphericalGrid fluxPhi = SphericalGrid::copyGrid(grid);
     SphericalGrid fluxTheta = SphericalGrid::copyGrid(grid);
@@ -355,9 +380,10 @@ void RKIntegrator(SphericalGrid& grid, double dt)
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
-                k.getCellRef(r,phi,theta) = grid.getCell(r,phi,theta) - 0.5 * dt / dx *
-                                                 ( std::get<0>(flux).getCell(r+1,phi,theta) - std::get<0>(flux).getCell(r,phi,theta)
-                                                  +std::get<1>(flux).getCell(r,phi+1,theta) - std::get<1>(flux).getCell(r,phi,theta))
+
+                k.getCellRef(r,phi,theta) = grid.getCell(r,phi,theta) - 0.5 * dt *
+                                                 ( (std::get<0>(flux).getCell(r+1,phi,theta) - std::get<0>(flux).getCell(r,phi,theta))/dr
+                                                  +(std::get<1>(flux).getCell(r,phi+1,theta) - std::get<1>(flux).getCell(r,phi,theta))/(dphi*grid.getRFromIndex(r)))
                                                   + 0.5 * dt * S(phi, r, grid.getCell(r,phi,theta));
             }
         }
@@ -367,9 +393,9 @@ void RKIntegrator(SphericalGrid& grid, double dt)
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
-                grid.getCellRef(r,phi,theta) = k.getCell(r,phi,theta) - dt / dx *
-                                                                        (std::get<0>(flux).getCell(r+1,phi,theta) - std::get<0>(flux).getCell(r,phi,theta)
-                                                                        +std::get<1>(flux).getCell(r,phi+1,theta) - std::get<1>(flux).getCell(r,phi,theta))
+                grid.getCellRef(r,phi,theta) = k.getCell(r,phi,theta) - dt *
+                                                                        ((std::get<0>(flux).getCell(r+1,phi,theta) - std::get<0>(flux).getCell(r,phi,theta))/dr
+                                                                        +(std::get<1>(flux).getCell(r,phi+1,theta) - std::get<1>(flux).getCell(r,phi,theta))/(dphi*grid.getRFromIndex(r)))
                                                                     +  dt * S(phi, r, grid.getCell(r,phi,theta));
             }
         }

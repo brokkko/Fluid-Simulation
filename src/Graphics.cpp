@@ -58,10 +58,10 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             double p = gamma * (U.E - 0.5 * U.rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
                                 - 0.5/mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
 
-            double displayvar =U.rho/std::pow(grid.getRFromIndex(x),2);;
+            double displayvar =U.rho;//std::pow(grid.getRFromIndex(x),2);;
             r.setFillColor(toColor(displayvar,0,radius));
 
-            r.setRotation((float)grid.getPhiFromIndex(y)/(2*M_PI)*360);
+            r.setRotation((float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
             r.setSize(sf::Vector2f(CellRSize,2*M_PI*CellRSize*x/grid.getSizePhi()));
             r.setPosition(sf::Vector2f(x*CellRSize*std::cos(grid.getPhiFromIndex(y)),x*CellRSize*std::sin(grid.getPhiFromIndex(y))));
             window.draw(r);

@@ -19,7 +19,8 @@ SphericalGrid::SphericalGrid(unsigned int sizeR,unsigned int sizePhi,unsigned in
 Cell SphericalGrid::getCell(int R,int Phi,int Theta)
 {
     R=clamp(R,0,(int)sizeR-1);
-    Phi=clamp(Phi,0,(int)sizePhi-1);
+    //Phi=clamp(Phi,0,(int)sizePhi-1);
+    Phi=(Phi+sizePhi)%(int)sizePhi;
     Theta=clamp(Theta,0,(int)sizeTheta-1);
     return mesh[Phi + R*sizePhi + Theta*sizePhi*sizeR];
 }
