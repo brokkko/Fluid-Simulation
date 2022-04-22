@@ -9,7 +9,7 @@
 #define clamp(x, y, z) std::max(y, std::min(x, z))
 #define DT 0.0001
 #define CELL_SIZE 1
-#define COLOR_SCHEME 2
+#define COLOR_SCHEME 1
 #define mu 1.2566e-8
 #define m_div_k 8249.805773
 #define Ms 1.991e30
