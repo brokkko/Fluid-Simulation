@@ -6,7 +6,6 @@
 #define FLUID_SIMULATION_SPHERICALGRID_H
 #include "Cell.h"
 #include <cmath>
-#include <tuple>
 
 class SphericalGrid {
     Cell* mesh;
