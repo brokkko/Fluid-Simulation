@@ -20,7 +20,7 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
 Cell S(int x,int y,Cell val);
 
 void InitialConditions(SphericalGrid& grid);
-void ApplyBoundaryConditions(SphericalGrid& grid);
+void ApplyBoundaryConditions(SphericalGrid& grid,double t);
 
-void RKIntegrator(SphericalGrid& grid, double dt);
+void RKIntegrator(SphericalGrid& grid, double dt,double& t);
 #endif //FLUID_SIMULATION_SIMULATION_H

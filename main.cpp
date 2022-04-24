@@ -11,6 +11,7 @@
 
 int main()
 {
+    double time=0;
     bool paused=false;
     bool shift =false;
     double upperbound[9] ={0.02,1,1,1,1,1,1,100000,100000};
@@ -19,7 +20,7 @@ int main()
     window.setActive(true);
     window.setFramerateLimit(60);
     //Grid grid(70,70);
-    SphericalGrid grid(70,70,1,1.497131e10,2.28e11,M_PI_2);
+    SphericalGrid grid(70,180,1,1.497131e10,2.28e11,M_PI_2);
     InitialConditions(grid);
 //grid.Fill(10);
     sf::View w;
@@ -64,7 +65,7 @@ int main()
         if (!paused) {
             for (int i = 0; i < 1; i++)
             {
-                RKIntegrator(grid, DT);
+                RKIntegrator(grid, DT,time);
             }
 
         }
