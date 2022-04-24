@@ -100,7 +100,7 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double thet
                     + 1.0/(r * std::sin(theta))*(std::cos(theta)*U.Vtheta + std::sin(theta)*Dtheta.Vtheta)
                     + 1.0/r * Dphi.Vphi;*/
 
-    double Vrdt = -((U.rho * U.Vtheta*U.Vtheta + U.rho*U.Vphi*U.Vphi) / r
+    double Vrdt = (-((U.rho * U.Vtheta*U.Vtheta + U.rho*U.Vphi*U.Vphi) / r
                         - dPdr
                         - (U.rho*G*Ms) / (r * r)
                         + U.Br / mu * Dr.Br
@@ -109,9 +109,11 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double thet
                         - (U.Btheta * U.Btheta + U.Bphi * U.Bphi) / (mu * r))
                      + 1.0/(r*r) * ( 2*r*U.rho * U.Vr * U.Vr + r*r*(Dr.rho * U.Vr*U.Vr + 2 * U.rho * U.Vr * Dr.Vr)
                      + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.rho*U.Vr*U.Vtheta + std::sin(theta)*(Dtheta.rho*U.Vr*U.Vtheta + U.rho*(Dtheta.Vr*U.Vtheta + U.Vr*Dtheta.Vtheta)))
-                     + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vr*U.Vphi + (Dphi.Vr*U.Vphi + U.Vr*Dphi.Vphi)));
+                     + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vr*U.Vphi + (Dphi.Vr*U.Vphi + U.Vr*Dphi.Vphi)))
 
-    double Vphidt = -((-U.rho * U.Vr*U.Vphi - U.rho*U.Vtheta*U.Vphi*ctg(theta)) / r
+                     - drhodt*U.Vr)/ U.rho;
+
+    double Vphidt = (-((-U.rho * U.Vr*U.Vphi - U.rho*U.Vtheta*U.Vphi*ctg(theta)) / r
                        - dPdphi/r
                        + U.Br / mu * Dr.Bphi
                        + 1.0/(r * r * mu) * (2*r*U.Bphi*U.Br + r*r*(Dr.Bphi * U.Br + U.Bphi * Dr.Br))
@@ -120,9 +122,11 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double thet
                        + (U.Br * U.Bphi + U.Btheta * U.Bphi*ctg(theta)) / (mu * r))
                        + 1.0/(r*r) * ( 2*r*U.rho * U.Vphi * U.Vr + r*r*(Dr.rho * U.Vphi*U.Vr +U.rho*( Dr.Vphi* U.Vr + U.Vphi * Dr.Vr))
                        + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.rho*U.Vphi*U.Vtheta + std::sin(theta)*(Dtheta.rho*U.Vphi*U.Vtheta + U.rho*(Dtheta.Vphi * U.Vtheta + U.Vphi*Dtheta.Vtheta)))
-                       + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vphi*U.Vphi + 2*U.rho*(Dphi.Vphi*U.Vphi)));
+                       + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vphi*U.Vphi + 2*U.rho*(Dphi.Vphi*U.Vphi)))
 
-    double Vthetadt = -((-U.rho * U.Vr*U.Vtheta + U.rho*U.Vphi*U.Vphi*ctg(theta)) / r
+                       - drhodt*U.Vphi)/ U.rho;
+
+    double Vthetadt = (-((-U.rho * U.Vr*U.Vtheta + U.rho*U.Vphi*U.Vphi*ctg(theta)) / r
                            - dPdtheta/r
                            + 1.0/(r * r * mu) * (2*r*U.Btheta*U.Br + r*r*(Dr.Btheta * U.Br + U.Btheta * Dr.Br))
                            + 1.0/(r * std::sin(theta) * mu) * (std::cos(theta)*U.Btheta*U.Btheta + std::sin(theta) * 2 * U.Btheta * Dtheta.Btheta)
@@ -131,7 +135,9 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double thet
                            - (U.Bphi * U.Bphi *ctg(theta)) / (mu * r))
                          + 1.0/(r*r) * ( 2*r*U.rho * U.Vtheta * U.Vr + r*r*(Dr.rho * U.Vtheta * U.Vr + U.rho*(Dr.Vtheta* U.Vr + U.Vtheta * Dr.Vr))
                          + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.rho*U.Vtheta*U.Vtheta + std::sin(theta)*(Dtheta.rho*U.Vtheta*U.Vtheta + 2* U.rho*(Dtheta.Vtheta*U.Vtheta)))
-                         + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vtheta*U.Vphi + U.rho*(Dtheta.Vphi*U.Vtheta + U.Vphi*Dtheta.Vtheta)));
+                         + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vtheta*U.Vphi + U.rho*(Dtheta.Vphi*U.Vtheta + U.Vphi*Dtheta.Vtheta)))
+
+                         - drhodt*U.Vtheta)/ U.rho;
 
 
     double Edt = 1.0/(r*r) * (2*r*U.E*U.Vr + r*r*(Dr.E*U.Vr + U.E*Dr.Vr))
@@ -216,7 +222,6 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 double atheta = maxSpeed(0.5 * (uL_theta + uR_theta));
 #endif
 
-
                 //std::cout << a << std::endl;
                 // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
                 std::get<0>(out).getCellRef(r,phi,theta) = (0.5 *
@@ -272,7 +277,7 @@ Cell S(int x,int y,Cell val)
 void InitialConditions(SphericalGrid& grid) {
     for (int x = 0; x < grid.getSizeR(); x++) {
         for (int y = 0; y < grid.getSizePhi(); y++) {
-            double rho=0.01/std::pow(grid.getRFromIndex(x),2);
+            double rho=100/std::pow(grid.getRFromIndex(x),2);
             double vx=0;
             double vy=0;
             double vz=0;
@@ -330,7 +335,7 @@ void ApplyBoundaryConditions(SphericalGrid& grid)
     double By=0.000;
     double Bz=0.000;
     double T =273;
-    double rho=0.06/std::pow(grid.getRFromIndex(1),2);
+    double rho=100/std::pow(grid.getRFromIndex(1),2);
 
 
 
@@ -344,7 +349,7 @@ void ApplyBoundaryConditions(SphericalGrid& grid)
 
         if(x>60 && x< 70)
         {
-             rho=0.1;
+             rho=100;
              vx=1000000;
         }
         double E = 2 * rho * m_div_k * T/(gamma-1)
