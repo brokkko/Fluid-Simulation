@@ -383,7 +383,7 @@ void ApplyBoundaryConditions(SphericalGrid& grid,double t)
         double Bz=0.000;
         double T =273;
         double rho=0.00001/std::pow(grid.getRFromIndex(1),2);
-        if(x>35 && x< 40 || x>65 && x< 70)
+        if(x>0 && x< 40 || x>65 && x< 70)
         {
             rho=0.01;
             vx=1000000;

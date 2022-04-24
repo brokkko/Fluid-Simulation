@@ -14,13 +14,13 @@ int main()
     double time=0;
     bool paused=false;
     bool shift =false;
-    double upperbound[9] ={0.02,1,1,1,1,1,1,100000,100000};
-    int currentmode = 0;
+    double upperbound[9] ={0.02,1,1,1,1,1,1,1e11,100000};
+    int currentmode = 7;
     sf::RenderWindow window(sf::VideoMode(700, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
     window.setActive(true);
     window.setFramerateLimit(60);
     //Grid grid(70,70);
-    SphericalGrid grid(70,70,1,1.497131e10,2.28e11,M_PI_2);
+    SphericalGrid grid(30,30,1,1.497131e10,2.28e11,M_PI_2);
     InitialConditions(grid);
 //grid.Fill(10);
     sf::View w;

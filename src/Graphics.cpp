@@ -54,11 +54,10 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             Cell U =grid.getCell(x,y,0);
             double Vr = U.Vr / U.rho;
             double Vtheta = U.Vtheta / U.rho;
-            double Vphi = U.Vphi / U.rho;
-            double p = gamma * (U.E - 0.5 * U.rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
+            double Vphi = U.Vphi / U.rho;           double p = gamma * (U.E - 0.5 * U.rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
                                 - 0.5/mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
 
-            double displayvar =U.rho;//std::pow(grid.getRFromIndex(x),2);;
+            double displayvar =U.E;//std::pow(grid.getRFromIndex(x),2);;
             r.setFillColor(toColor(displayvar,0,radius));
 
             r.setRotation((float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
@@ -70,10 +69,20 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
 
     std::stringstream ss2;
 
-
+    double sum=0;
+    for (int y = 0; y < grid.getSizePhi(); y++)
+    {
+        for (int x = 0; x < grid.getSizeR(); x++){
+            sum+=grid.getCell(x,y,0).E;
+            if (std::isnan(sum))
+            {
+                std::cout<<"an";
+            }
+        }
+    }
 
     std::string names[] ={"RHO","Vx","Vy","Vz","Br","Bphi","Btheta","E","P"};
-    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode];
+    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum;;
     t.setString(ss2.str());
     t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
     window.draw(t);
