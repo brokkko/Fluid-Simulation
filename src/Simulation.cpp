@@ -166,9 +166,9 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double thet
 }
 
 double maxSpeed(Cell U){
-    double p = (gamma-1) * (U.E - 1.0/2*U.rho* (U.Vr * U.Vr + U.Vphi * U.Vphi + U.Vtheta * U.Vtheta)
-                        - 1.0/2*(U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
-    double P = p + 1.0/2*(U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta);
+    double p = gamma * (U.E - 0.5 * U.rho * (U.Vr * U.Vr + U.Vtheta * U.Vtheta + U.Vphi * U.Vphi)
+                        - 0.5/mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
+    double P = p + 0.5 / mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta);
 
     double B_2 = U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta;
     double B = std::sqrt(B_2);
