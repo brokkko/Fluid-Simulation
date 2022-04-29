@@ -8,7 +8,7 @@
 
 
 
-struct Grid
+/*struct Grid
 {
     Cell** mesh;
     Cell** fluxMesh;
@@ -62,5 +62,5 @@ struct Grid
             delete[] fluxMesh;
         }
     }
-};
+};*/
 #endif //FLUID_SIMULATION_GRID_H

@@ -4,7 +4,6 @@
 #include "Grid.h"
 #include "SphericalGrid.h"
 
-
 // one variable!!
 // ospre flux limiter
 Cell SlopeLim(Cell r);
@@ -15,7 +14,11 @@ Cell nonZeroDenom(Cell denom);
 
 Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double theta);
 
-void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, Grid& in);
+Cell FluxR(Cell U);
+Cell FluxPhi(Cell U);
+Cell FluxTheta(Cell U);
+
+void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, SphericalGrid& in);
 
 Cell S(int x,int y,Cell val);
 

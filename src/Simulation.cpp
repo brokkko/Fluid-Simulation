@@ -6,22 +6,30 @@
 
 Cell SlopeLim(Cell r)
 {
-    /* return {std::max(0.0,std::max(std::min(2*r.rho,1.0),std::min(r.rho,2.0))),
-             std::max(0.0,std::max(std::min(2*r.Vr,1.0),std::min(r.Vr,2.0))),
-             std::max(0.0,std::max(std::min(2*r.Vphi,1.0),std::min(r.Vphi,2.0))),
+    /* return {std::max(0.0,std::max(std::min(2*r.p_rho,1.0),std::min(r.p_rho,2.0))),
+             std::max(0.0,std::max(std::min(2*r.p_Vr,1.0),std::min(r.p_Vr,2.0))),
+             std::max(0.0,std::max(std::min(2*r.p_Vph,1.0),std::min(r.p_Vph,2.0))),
                  std::max(0.0,std::max(std::min(2*r.B,1.0),std::min(r.B,2.0)))};*/
-    return {std::max(0.0, std::min(1.0, r.rho)),
-            std::max(0.0, std::min(1.0, r.Vr)),
-            std::max(0.0, std::min(1.0, r.Vphi)),
-            std::max(0.0, std::min(1.0, r.Vtheta)),
-            std::max(0.0, std::min(1.0, r.Br)),
-            std::max(0.0, std::min(1.0, r.Bphi)),
-            std::max(0.0, std::min(1.0, r.Btheta)),
-            std::max(0.0, std::min(1.0, r.E))};
+    Cell res = r;
+    auto res_p = reinterpret_cast<double*>(&res);
+    auto r_p = reinterpret_cast<double*>(&r);
+    for(int i=0;i<16;i++)
+        res_p[i] = std::max(0.0, std::min(1.0, r_p[i]));
+    return res;
 
-    /* return Cell{std::max(0.0, 1.5 * (r.rho * r.rho + r.rho) / (r.rho * r.rho + r.rho + 1)),
-                 std::max(0.0, 1.5 * (r.Vr * r.Vr + r.Vr) / (r.Vr * r.Vr + r.Vr + 1)),
-                          std::max(0.0, 1.5 * (r.Vphi * r.Vphi + r.Vphi) / (r.Vphi * r.Vphi + r.Vphi + 1)),
+
+   /* return {std::max(0.0, std::min(1.0, r.p_rho)),
+            std::max(0.0, std::min(1.0, r.p_Vr)),
+            std::max(0.0, std::min(1.0, r.p_Vph)),
+            std::max(0.0, std::min(1.0, r.p_Vth)),
+            std::max(0.0, std::min(1.0, r.p_Br)),
+            std::max(0.0, std::min(1.0, r.p_Bph)),
+            std::max(0.0, std::min(1.0, r.p_Bth)),
+            std::max(0.0, std::min(1.0, r.c_E))};*/
+
+    /* return Cell{std::max(0.0, 1.5 * (r.p_rho * r.p_rho + r.p_rho) / (r.p_rho * r.p_rho + r.p_rho + 1)),
+                 std::max(0.0, 1.5 * (r.p_Vr * r.p_Vr + r.p_Vr) / (r.p_Vr * r.p_Vr + r.p_Vr + 1)),
+                          std::max(0.0, 1.5 * (r.p_Vph * r.p_Vph + r.p_Vph) / (r.p_Vph * r.p_Vph + r.p_Vph + 1)),
                           std::max(0.0, 1.5 * (r.B * r.B + r.B) / (r.B * r.B + r.B + 1))};*/
 
 
@@ -42,147 +50,175 @@ double nonZeroDouble(double val)
 
 Cell nonZeroDenom(Cell denom)
 {
-    return {nonZeroDouble(denom.rho),
-            nonZeroDouble(denom.Vr),
-            nonZeroDouble(denom.Vphi),
-            nonZeroDouble(denom.Vtheta),
-            nonZeroDouble(denom.Br),
-            nonZeroDouble(denom.Bphi),
-            nonZeroDouble(denom.Btheta),
-            nonZeroDouble(denom.E)};
+    Cell res = denom;
+    auto res_p = reinterpret_cast<double*>(&res);
+    auto d_p = reinterpret_cast<double*>(&denom);
+    for(int i=0;i<16;i++)
+        res_p[i] = nonZeroDouble(d_p[i]);
+    return res;
 }
 
-Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double theta)
+Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
 {
-    theta=M_PI_2;
-    /*double Vr = U.Vr/U.rho;
-    double Vrdr = Dr.Vr - Dr.rho * Vr;
-    double Vrdphi = Dphi.Vr - Dphi.rho * Vr;
-    double Vrdtheta = Dtheta.Vr - Dtheta.rho * Vr;
+    double r =U.r;
+    double phi = U.phi;
+    double theta = U.theta;
+    //theta=M_PI_2;
 
-    double Vtheta = U.Vtheta / U.rho;
-    double Vthetadr = Dr.Vtheta - Dr.rho * Vtheta;
-    double Vthetadphi = Dphi.Vtheta - Dphi.rho * Vtheta;
-    double Vthetadtheta = Dtheta.Vtheta - Dtheta.rho * Vtheta;
+    // p_rho * vr = p_rho/dr * vr + p_rho * vr/dr
+    //vr/dr = (p_rho * vr - p_rho/dr * vr)/p_rho
+    double p = gamma * (U.c_E - 0.5 * U.p_rho * (U.p_Vr * U.p_Vr + U.p_Vth * U.p_Vth + U.p_Vph * U.p_Vph)
+                        - 0.5/mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth));
+    double dpdr = gamma * (Dr.c_E - 0.5 * Dr.p_rho * (U.p_Vr * U.p_Vr + U.p_Vph * U.p_Vph + U.p_Vth * U.p_Vth)
+                           - U.p_rho * (Dr.p_Vr * U.p_Vr + Dr.p_Vph * U.p_Vph + Dr.p_Vth * U.p_Vth)
+                           - (Dr.p_Br * U.p_Br + Dr.p_Bph * U.p_Bph + Dr.p_Bth * U.p_Bth) / mu);
+    double dpdphi = gamma * (Dphi.c_E - 1.0 / 2 * Dphi.p_rho * (U.p_Vr * U.p_Vr + U.p_Vph * U.p_Vph + U.p_Vth * U.p_Vth)
+                             - U.p_rho * (Dphi.p_Vr * U.p_Vr + Dphi.p_Vph * U.p_Vph + Dphi.p_Vth * U.p_Vth)
+                             - (Dphi.p_Br * U.p_Br + Dphi.p_Bph * U.p_Bph + Dphi.p_Bth * U.p_Bth) / mu);
+    double dpdtheta =gamma * (Dtheta.c_E - 0.5 * Dtheta.p_rho * (U.p_Vr * U.p_Vr + U.p_Vph * U.p_Vph + U.p_Vth * U.p_Vth)
+                              - U.p_rho * (Dtheta.p_Vr * U.p_Vr + Dtheta.p_Vph * U.p_Vph + Dtheta.p_Vth * U.p_Vth)
+                              - (Dtheta.p_Br * U.p_Br + Dtheta.p_Bph * U.p_Bph + Dtheta.p_Bth * U.p_Bth) / mu);
 
-    double Vphi = U.Vphi / U.rho;
-    double Vphidr = Dr.Vphi - Dr.rho * Vphi;
-    double Vphidphi = Dphi.Vphi - Dphi.rho * Vphi;
-    double Vphidtheta = Dtheta.Vphi - Dtheta.rho * Vphi;*/
+    double P = p + 0.5 / mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth);
+    double dPdr = dpdr + (Dr.p_Br * U.p_Br + Dr.p_Bph * U.p_Bph + Dr.p_Bth * U.p_Bth) / mu;
+    double dPdphi = dpdphi + (Dphi.p_Br * U.p_Br + Dphi.p_Bph * U.p_Bph + Dphi.p_Bth * U.p_Bth) / mu;
+    double dPdtheta = dpdtheta + (Dtheta.p_Br * U.p_Br + Dtheta.p_Bph * U.p_Bph + Dtheta.p_Bth * U.p_Bth) / mu;
 
-    // rho * vr = rho/dr * vr + rho * vr/dr
-    //vr/dr = (rho * vr - rho/dr * vr)/rho
-    double p = gamma * (U.E - 0.5 * U.rho * (U.Vr * U.Vr + U.Vtheta * U.Vtheta + U.Vphi * U.Vphi)
-                        - 0.5/mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
-    double dpdr = gamma * (Dr.E - 0.5 * Dr.rho * (U.Vr * U.Vr + U.Vphi * U.Vphi + U.Vtheta * U.Vtheta)
-                           - U.rho * (Dr.Vr * U.Vr + Dr.Vphi * U.Vphi + Dr.Vtheta * U.Vtheta)
-                           - (Dr.Br * U.Br + Dr.Bphi * U.Bphi + Dr.Btheta * U.Btheta)/mu);
-    double dpdphi = gamma * (Dphi.E - 1.0/2*Dphi.rho* (U.Vr*U.Vr + U.Vphi*U.Vphi + U.Vtheta*U.Vtheta)
-                           - U.rho * (Dphi.Vr * U.Vr + Dphi.Vphi * U.Vphi + Dphi.Vtheta * U.Vtheta)
-                           - (Dphi.Br * U.Br + Dphi.Bphi * U.Bphi + Dphi.Btheta * U.Btheta)/mu);
-    double dpdtheta =gamma * (Dtheta.E - 0.5 * Dtheta.rho * (U.Vr * U.Vr + U.Vphi * U.Vphi + U.Vtheta * U.Vtheta)
-                              - U.rho * (Dtheta.Vr * U.Vr + Dtheta.Vphi * U.Vphi + Dtheta.Vtheta * U.Vtheta)
-                              - (Dtheta.Br * U.Br + Dtheta.Bphi * U.Bphi + Dtheta.Btheta * U.Btheta)/mu);
+    /*double drhodt=   Dr.p_rho * U.p_Vr + U.p_rho * Dr.p_Vr +
+                     Dphi.p_rho * U.p_Vph + U.p_rho * Dphi.p_Vph;*/
 
-    double P = p + 0.5 / mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta);
-    double dPdr = dpdr + (Dr.Br * U.Br + Dr.Bphi * U.Bphi + Dr.Btheta * U.Btheta) / mu;
-    double dPdphi = dpdphi + (Dphi.Br * U.Br + Dphi.Bphi * U.Bphi + Dphi.Btheta * U.Btheta) / mu;
-    double dPdtheta = dpdtheta + (Dtheta.Br * U.Br + Dtheta.Bphi * U.Bphi + Dtheta.Btheta * U.Btheta) / mu;
+   //double drhodt = U.p_Vr*Dr.p_rho + U.p_rho*Dr.p_Vr + 2.0/r*U.p_rho*U.p_Vr;
+    double drhodt = 1. /(r * r) * (2 * r * U.p_rho * U.p_Vr + r * r * (Dr.p_rho * U.p_Vr + U.p_rho * Dr.p_Vr))
+                 + 1.0 /(r * std::sin(theta)) * (std::cos(theta) * U.p_rho * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vth + U.p_rho * Dtheta.p_Vth))
+                 + 1.0 / r * (U.p_rho * Dphi.p_Vph + U.p_Vph * Dphi.p_rho);
+    /*double drhodt = 1./(r*r) * (2 * r * U.p_Vr + r*r * Dr.p_Vr)
+                    + 1.0/(r * std::sin(theta))*(std::cos(theta)*U.p_Vth + std::sin(theta)*Dtheta.p_Vth)
+                    + 1.0/r * Dphi.p_Vph;*/
 
-    /*double drhodt=   Dr.rho * U.Vr + U.rho * Dr.Vr +
-                     Dphi.rho * U.Vphi + U.rho * Dphi.Vphi;*/
+    double Mrdt = (-((U.p_rho * U.p_Vth * U.p_Vth + U.p_rho * U.p_Vph * U.p_Vph) / r
+                     - Dr.p_P
+                     - (U.p_rho * G * Ms) / (r * r)
+                     + U.p_Br / mu * Dr.p_Br
+                     + 1.0/(r * mu) * (Dtheta.p_Br * U.p_Bth + U.p_Br * Dtheta.p_Bth)
+                     + U.p_Bph / mu * Dphi.p_Br
+                     - (U.p_Bth * U.p_Bth + U.p_Bph * U.p_Bph) / (mu * r))
+                   + 1.0/(r*r) * (2 * r * U.p_rho * U.p_Vr * U.p_Vr + r * r * (Dr.p_rho * U.p_Vr * U.p_Vr + 2 * U.p_rho * U.p_Vr * Dr.p_Vr)
+                                  + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.p_rho * U.p_Vr * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vr * U.p_Vth + U.p_rho * (Dtheta.p_Vr * U.p_Vth + U.p_Vr * Dtheta.p_Vth)))
+                                  + 1.0/(r*std::sin(theta)) * (Dphi.p_rho * U.p_Vr * U.p_Vph + (Dphi.p_Vr * U.p_Vph + U.p_Vr * Dphi.p_Vph))));
 
-   //double drhodt = U.Vr*Dr.rho + U.rho*Dr.Vr + 2.0/r*U.rho*U.Vr;
-    double drhodt = 1. /(r * r) * (2 * r * U.rho * U.Vr + r * r * (Dr.rho * U.Vr + U.rho * Dr.Vr))
-                 + 1.0 /(r * std::sin(theta)) * (std::cos(theta) * U.rho * U.Vtheta + std::sin(theta) * (Dtheta.rho * U.Vtheta + U.rho * Dtheta.Vtheta))
-                 + 1.0 / r * (U.rho * Dphi.Vphi + U.Vphi * Dphi.rho);
-    /*double drhodt = 1./(r*r) * (2 * r * U.Vr + r*r * Dr.Vr)
-                    + 1.0/(r * std::sin(theta))*(std::cos(theta)*U.Vtheta + std::sin(theta)*Dtheta.Vtheta)
-                    + 1.0/r * Dphi.Vphi;*/
+    double Mphidt = (-((-U.p_rho * U.p_Vr * U.p_Vph - U.p_rho * U.p_Vth * U.p_Vph * ctg(theta)) / r
+                       - Dphi.p_P/r
+                       + U.p_Br / mu * Dr.p_Bph
+                       + 1.0/(r * r * mu) * (2 * r * U.p_Bph * U.p_Br + r * r * (Dr.p_Bph * U.p_Br + U.p_Bph * Dr.p_Br))
+                       + 1.0 / (mu*r) *(Dtheta.p_Bph * U.p_Bth + U.p_Bph * Dtheta.p_Bth)
+                       + U.p_Bph / (r * mu) * Dphi.p_Bph
+                       + (U.p_Br * U.p_Bph + U.p_Bth * U.p_Bph * ctg(theta)) / (mu * r))
+                     + 1.0/(r*r) * (2 * r * U.p_rho * U.p_Vph * U.p_Vr + r * r * (Dr.p_rho * U.p_Vph * U.p_Vr + U.p_rho * (Dr.p_Vph * U.p_Vr + U.p_Vph * Dr.p_Vr))
+                                    + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.p_rho * U.p_Vph * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vph * U.p_Vth + U.p_rho * (Dtheta.p_Vph * U.p_Vth + U.p_Vph * Dtheta.p_Vth)))
+                                    + 1.0/(r*std::sin(theta)) * (Dphi.p_rho * U.p_Vph * U.p_Vph + 2 * U.p_rho * (Dphi.p_Vph * U.p_Vph))));
 
-    double Vrdt = (-((U.rho * U.Vtheta*U.Vtheta + U.rho*U.Vphi*U.Vphi) / r
-                     - dPdr
-                     - (U.rho*G*Ms) / (r * r)
-                     + U.Br / mu * Dr.Br
-                     + 1.0/(r * mu) * (Dtheta.Br * U.Btheta + U.Br * Dtheta.Btheta)
-                     + U.Bphi / mu * Dphi.Br
-                     - (U.Btheta * U.Btheta + U.Bphi * U.Bphi) / (mu * r))
-                   + 1.0/(r*r) * ( 2*r*U.rho * U.Vr * U.Vr + r*r*(Dr.rho * U.Vr*U.Vr + 2 * U.rho * U.Vr * Dr.Vr)
-                                   + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.rho*U.Vr*U.Vtheta + std::sin(theta)*(Dtheta.rho*U.Vr*U.Vtheta + U.rho*(Dtheta.Vr*U.Vtheta + U.Vr*Dtheta.Vtheta)))
-                                   + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vr*U.Vphi + (Dphi.Vr*U.Vphi + U.Vr*Dphi.Vphi)))
-
-                   - drhodt*U.Vr)/ U.rho;
-
-    double Vphidt = (-((-U.rho * U.Vr*U.Vphi - U.rho*U.Vtheta*U.Vphi*ctg(theta)) / r
-                       - dPdphi/r
-                       + U.Br / mu * Dr.Bphi
-                       + 1.0/(r * r * mu) * (2*r*U.Bphi*U.Br + r*r*(Dr.Bphi * U.Br + U.Bphi * Dr.Br))
-                       + 1.0 / (mu*r) *(Dtheta.Bphi * U.Btheta + U.Bphi * Dtheta.Btheta)
-                       + U.Bphi/(r*mu) * Dphi.Bphi
-                       + (U.Br * U.Bphi + U.Btheta * U.Bphi*ctg(theta)) / (mu * r))
-                     + 1.0/(r*r) * ( 2*r*U.rho * U.Vphi * U.Vr + r*r*(Dr.rho * U.Vphi*U.Vr +U.rho*( Dr.Vphi* U.Vr + U.Vphi * Dr.Vr))
-                                     + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.rho*U.Vphi*U.Vtheta + std::sin(theta)*(Dtheta.rho*U.Vphi*U.Vtheta + U.rho*(Dtheta.Vphi * U.Vtheta + U.Vphi*Dtheta.Vtheta)))
-                                     + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vphi*U.Vphi + 2*U.rho*(Dphi.Vphi*U.Vphi)))
-
-                     - drhodt*U.Vphi)/ U.rho;
-
-    double Vthetadt = (-((-U.rho * U.Vr*U.Vtheta + U.rho*U.Vphi*U.Vphi*ctg(theta)) / r
-                         - dPdtheta/r
-                         + 1.0/(r * r * mu) * (2*r*U.Btheta*U.Br + r*r*(Dr.Btheta * U.Br + U.Btheta * Dr.Br))
-                         + 1.0/(r * std::sin(theta) * mu) * (std::cos(theta)*U.Btheta*U.Btheta + std::sin(theta) * 2 * U.Btheta * Dtheta.Btheta)
-                         + 1.0 / (r * std::sin(theta) * mu) * (Dphi.Btheta * U.Bphi + U.Btheta * Dphi.Bphi)
-                         + U.Br*U.Btheta/(r*mu)
-                         - (U.Bphi * U.Bphi *ctg(theta)) / (mu * r))
-                       + 1.0/(r*r) * ( 2*r*U.rho * U.Vtheta * U.Vr + r*r*(Dr.rho * U.Vtheta * U.Vr + U.rho*(Dr.Vtheta* U.Vr + U.Vtheta * Dr.Vr))
-                                       + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.rho*U.Vtheta*U.Vtheta + std::sin(theta)*(Dtheta.rho*U.Vtheta*U.Vtheta + 2* U.rho*(Dtheta.Vtheta*U.Vtheta)))
-                                       + 1.0/(r*std::sin(theta)) * (Dphi.rho*U.Vtheta*U.Vphi + U.rho*(Dtheta.Vphi*U.Vtheta + U.Vphi*Dtheta.Vtheta)))
-
-                       - drhodt*U.Vtheta)/ U.rho;
+    double Mthetadt = (-((-U.p_rho * U.p_Vr * U.p_Vth + U.p_rho * U.p_Vph * U.p_Vph * ctg(theta)) / r
+                         - Dtheta.p_P/r
+                         + 1.0/(r * r * mu) * (2 * r * U.p_Bth * U.p_Br + r * r * (Dr.p_Bth * U.p_Br + U.p_Bth * Dr.p_Br))
+                         + 1.0/(r * std::sin(theta) * mu) * (std::cos(theta) * U.p_Bth * U.p_Bth + std::sin(theta) * 2 * U.p_Bth * Dtheta.p_Bth)
+                         + 1.0 / (r * std::sin(theta) * mu) * (Dphi.p_Bth * U.p_Bph + U.p_Bth * Dphi.p_Bph)
+                         + U.p_Br * U.p_Bth / (r * mu)
+                         - (U.p_Bph * U.p_Bph * ctg(theta)) / (mu * r))
+                       + 1.0/(r*r) * (2 * r * U.p_rho * U.p_Vth * U.p_Vr + r * r * (Dr.p_rho * U.p_Vth * U.p_Vr + U.p_rho * (Dr.p_Vth * U.p_Vr + U.p_Vth * Dr.p_Vr))
+                                      + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.p_rho * U.p_Vth * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vth * U.p_Vth + 2 * U.p_rho * (Dtheta.p_Vth * U.p_Vth)))
+                                      + 1.0/(r*std::sin(theta)) * (Dphi.p_rho * U.p_Vth * U.p_Vph + U.p_rho * (Dtheta.p_Vph * U.p_Vth + U.p_Vph * Dtheta.p_Vth))));
 
 
-    double Edt = 1.0/(r*r) * (2*r*U.E*U.Vr + r*r*(Dr.E*U.Vr + U.E*Dr.Vr))
-                 + 1.0/(r*std::sin(theta)) * (std::cos(theta)*U.E*U.Vtheta + std::sin(theta)*(Dtheta.E*U.Vtheta + U.E*Dtheta.Vtheta))
-                 + 1.0/(r*std::sin(theta)) * (Dphi.E*U.Vphi + U.E*Dphi.Vphi)
-                 -(- 1.0/(r*r) * (2*r*P*U.Vr + r*r*(dPdr*U.Vr + P*Dr.Vr))
-                   - 1.0/(r*std::sin(theta)) * (std::cos(theta)*P*U.Vtheta + std::sin(theta)*(dPdtheta*U.Vtheta + P*Dtheta.Vtheta))
-                   - 1.0/(r*std::sin(theta)) *(dPdphi*U.Vphi + P * Dphi.Vphi)
-                   - U.rho*U.Vr*G*Ms/(r*r)
-                   + 1.0/(r*r*mu) * (2*r*U.Br*(U.Br*U.Vr+U.Btheta*U.Vtheta+U.Bphi*U.Vphi) + r*r*(Dr.Br*(U.Br*U.Vr+U.Btheta*U.Vtheta+U.Bphi*U.Vphi)
-                        + U.Br*((Dr.Br*U.Vr + U.Br*Dr.Vr)+(Dr.Btheta*U.Vtheta + U.Btheta*Dr.Vtheta)+(Dr.Bphi*U.Vphi + U.Bphi*Dr.Vphi))))
-                   + 1.0/(r*std::sin(theta)*mu) *(std::cos(theta)*U.Btheta*(U.Br*U.Vr + U.Btheta*U.Vtheta+U.Bphi*U.Vphi)
-                        + std::sin(theta)*(Dtheta.Btheta*(U.Br*U.Vr + U.Btheta*U.Vtheta+U.Bphi*U.Vphi)
-                        + U.Btheta*((Dtheta.Br*U.Vr + U.Br*Dtheta.Vr)+(Dtheta.Btheta*U.Vtheta + U.Btheta*Dtheta.Vtheta)+(Dtheta.Bphi*U.Vphi + U.Bphi*Dtheta.Vphi))))
-                   + 1.0/(r*std::sin(theta)*mu) * (Dphi.Bphi*(U.Br*U.Vr+U.Btheta*U.Vtheta+U.Bphi*U.Vphi)
-                        + U.Bphi*((Dphi.Br*U.Vr + U.Br*Dphi.Vr)+(Dphi.Btheta*U.Vtheta + U.Btheta*Dphi.Vtheta)+(Dphi.Bphi*U.Vphi + U.Bphi*Dphi.Vphi)))
-                         );
+    double Edt = 1.0/(r*r) * (2 * r * U.c_E/U.volume * U.p_Vr + r * r * (Dr.c_E * U.p_Vr + U.c_E * Dr.p_Vr))
+                 + 1.0/(r*std::sin(theta)) * (std::cos(theta) * U.c_E * U.p_Vth + std::sin(theta) * (Dtheta.c_E * U.p_Vth + U.c_E * Dtheta.p_Vth))
+                 + 1.0/(r*std::sin(theta)) * (Dphi.c_E * U.p_Vph + U.c_E * Dphi.p_Vph)
+                 -(- 1.0/(r*r) * (2*r*P*U.p_Vr + r * r * (dPdr * U.p_Vr + P * Dr.p_Vr))
+                   - 1.0/(r*std::sin(theta)) * (std::cos(theta)*P*U.p_Vth + std::sin(theta) * (dPdtheta * U.p_Vth + P * Dtheta.p_Vth))
+                   - 1.0/(r*std::sin(theta)) *(dPdphi*U.p_Vph + P * Dphi.p_Vph)
+                   - U.p_rho * U.p_Vr * G * Ms / (r * r)
+                   + 1.0/(r*r*mu) * (2 * r * U.p_Br * (U.p_Br * U.p_Vr + U.p_Bth * U.p_Vth + U.p_Bph * U.p_Vph) + r * r * (Dr.p_Br * (U.p_Br * U.p_Vr + U.p_Bth * U.p_Vth + U.p_Bph * U.p_Vph)
+                                                                                                                           + U.p_Br * ((Dr.p_Br * U.p_Vr + U.p_Br * Dr.p_Vr) + (Dr.p_Bth * U.p_Vth + U.p_Bth * Dr.p_Vth) + (Dr.p_Bph * U.p_Vph + U.p_Bph * Dr.p_Vph))))
+                   + 1.0/(r*std::sin(theta)*mu) *(std::cos(theta) * U.p_Bth * (U.p_Br * U.p_Vr + U.p_Bth * U.p_Vth + U.p_Bph * U.p_Vph)
+                        + std::sin(theta)*(Dtheta.p_Bth * (U.p_Br * U.p_Vr + U.p_Bth * U.p_Vth + U.p_Bph * U.p_Vph)
+                        + U.p_Bth * ((Dtheta.p_Br * U.p_Vr + U.p_Br * Dtheta.p_Vr) + (Dtheta.p_Bth * U.p_Vth + U.p_Bth * Dtheta.p_Vth) + (Dtheta.p_Bph * U.p_Vph + U.p_Bph * Dtheta.p_Vph))))
+                   + 1.0/(r*std::sin(theta)*mu) * (Dphi.p_Bph * (U.p_Br * U.p_Vr + U.p_Bth * U.p_Vth + U.p_Bph * U.p_Vph)
+                        + U.p_Bph * ((Dphi.p_Br * U.p_Vr + U.p_Br * Dphi.p_Vr) + (Dphi.p_Bth * U.p_Vth + U.p_Bth * Dphi.p_Vth) + (Dphi.p_Bph * U.p_Vph + U.p_Bph * Dphi.p_Vph))))
+                         ;
 
     if(std::abs(Edt)>10000)
         int a=0;
 
+    Cell res = U;
+    res.p_rho = drhodt;
+    res.p_Vr =  (Mrdt - drhodt*U.p_Vr )/U.p_rho;
+    res.p_Vph = (Mrdt - drhodt*U.p_Vph)/U.p_rho;
+    res.p_Vth = (Mrdt - drhodt*U.p_Vth)/U.p_rho;
+    res.p_Br = 0;
+    res.p_Bph = 0;
+    res.p_Bth = 0;
+    res.p_P = 0;
+    return res;
+}
 
+Cell FluxR(Cell U)
+{
+    double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
+    Cell res  = U;
+    res.c_rho = U.c_Mr;
+    res.c_Mr  = U.c_Mr  * U.p_Vr - U.p_Br * U.p_Br + U.p_P;
+    res.c_Mph = U.c_Mph * U.p_Vr - U.p_Br * U.p_Bph;
+    res.c_Mth = U.c_Mth * U.p_Vr - U.p_Br * U.p_Bth;
 
-    return Cell{drhodt,
-                Vrdt,
-                Vphidt,
-                Vthetadt,
-                0,
-                0,
-                0,
-                Edt};
+    res.c_Br = 0;
+    res.c_Bph = 0;
+    res.c_Bth = 0;
+    res.c_E = (U.c_E + U.p_P)*U.p_Vr - U.p_Br*vB;
+    return res;
+}
+
+Cell FluxPhi(Cell U)
+{
+    double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
+    Cell res  = U;
+    res.c_rho = U.c_Mph;
+    res.c_Mr  = U.c_Mr *  U.p_Vph - U.p_Bph * U.p_Br + U.p_P;
+    res.c_Mph = U.c_Mph * U.p_Vph - U.p_Bph * U.p_Bph;
+    res.c_Mth = U.c_Mth * U.p_Vph - U.p_Bph * U.p_Bth;
+
+    res.c_Br = 0;
+    res.c_Bph = 0;
+    res.c_Bth = 0;
+    res.c_E = (U.c_E + U.p_P)*U.p_Vph - U.p_Bph*vB;
+    return res;
+}
+Cell FluxTheta(Cell U)
+{
+    double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
+    Cell res  = U;
+    res.c_rho = U.c_Mth;
+    res.c_Mr  = U.c_Mr  * U.p_Vth - U.p_Bth * U.p_Br + U.p_P;
+    res.c_Mph = U.c_Mph * U.p_Vth - U.p_Bth * U.p_Bph;
+    res.c_Mth = U.c_Mth * U.p_Vth - U.p_Bth * U.p_Bth;
+
+    res.c_Br = 0;
+    res.c_Bph = 0;
+    res.c_Bth = 0;
+    res.c_E = (U.c_E + U.p_P)*U.p_Vth - U.p_Bth*vB;
+    return res;
 }
 
 double maxSpeed(Cell U){
-    double p = gamma * (U.E - 0.5 * U.rho * (U.Vr * U.Vr + U.Vtheta * U.Vtheta + U.Vphi * U.Vphi)
-                        - 0.5/mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
-    double P = p + 0.5 / mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta);
+    double p = gamma * (U.c_E - 0.5 * U.p_rho * (U.p_Vr * U.p_Vr + U.p_Vth * U.p_Vth + U.p_Vph * U.p_Vph)
+                        - 0.5/mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth));
+    double P = p + 0.5 / mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth);
 
-    double B_2 = U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta;
+    double B_2 = U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth;
     double B = std::sqrt(B_2);
 
     double cmax =
-            std::sqrt(U.Vr * U.Vr + U.Vphi * U.Vphi + U.Vtheta * U.Vtheta)
-            + 0.5*((gamma * p + B_2)/U.rho
-            + std::sqrt(((gamma + B)/U.rho) * ((gamma + B)/U.rho) - 4 * (gamma * U.Br * U.Br) / (U.rho * U.rho)));
+            std::sqrt(U.p_Vr * U.p_Vr + U.p_Vph * U.p_Vph + U.p_Vth * U.p_Vth)
+            + 0.5*((gamma * p + B_2)/U.p_rho
+            + std::sqrt(((gamma + B)/U.p_rho) * ((gamma + B) / U.p_rho) - 4 * (gamma * U.p_Br * U.p_Br) / (U.p_rho * U.p_rho)));
 
     return cmax*DT/CELL_SIZE;
 }
@@ -203,14 +239,14 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 auto rtheta_current = (in.getCell(r,phi,theta) - in.getCell(r,phi,theta-1)) / nonZeroDenom(in.getCell(r,phi,theta+1) - in.getCell(r,phi,theta));
                 auto rtheta_prev = (in.getCell(r,phi,theta-1) - in.getCell(r,phi,theta-2)) / nonZeroDenom(in.getCell(r,phi,theta) - in.getCell(r,phi,theta-1));
 
-                auto uL_R = in.getCell(r-1,phi,theta) + 0.5 * SlopeLim(rR_prev) * (in.getCell(r,phi,theta) - in.getCell(r-1,phi,theta));
-                auto uR_R = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rR_current) * (in.getCell(r+1,phi,theta) - in.getCell(r,phi,theta));
+                auto uL_r = in.getCell(r-1,phi,theta) + 0.5 * SlopeLim(rR_prev) * (in.getCell(r,phi,theta) - in.getCell(r-1,phi,theta));
+                auto uR_r = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rR_current) * (in.getCell(r+1,phi,theta) - in.getCell(r,phi,theta));
 
-                auto uL_phi = in.getCell(r,phi-1,theta) + 0.5 * SlopeLim(rphi_prev) * (in.getCell(r,phi,theta) - in.getCell(r,phi-1,theta));
-                auto uR_phi = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rphi_current) * (in.getCell(r,phi+1,theta) - in.getCell(r,phi,theta));
+                auto uL_ph = in.getCell(r,phi-1,theta) + 0.5 * SlopeLim(rphi_prev) * (in.getCell(r,phi,theta) - in.getCell(r,phi-1,theta));
+                auto uR_ph = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rphi_current) * (in.getCell(r,phi+1,theta) - in.getCell(r,phi,theta));
 
-                auto uL_theta = in.getCell(r,phi,theta-1) + 0.5 * SlopeLim(rtheta_prev) * (in.getCell(r,phi,theta) - in.getCell(r,phi,theta-1));
-                auto uR_theta = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rtheta_current) * (in.getCell(r,phi,theta+1) - in.getCell(r,phi,theta));
+                auto uL_th = in.getCell(r,phi,theta-1) + 0.5 * SlopeLim(rtheta_prev) * (in.getCell(r,phi,theta) - in.getCell(r,phi,theta-1));
+                auto uR_th = in.getCell(r,phi,theta) - 0.5 * SlopeLim(rtheta_current) * (in.getCell(r,phi,theta+1) - in.getCell(r,phi,theta));
 
 #if defined(USE_CONST_A)
                 double aR = A_SPEED;
@@ -222,46 +258,14 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 double atheta = maxSpeed(0.5 * (uL_theta + uR_theta));
 #endif
 
-
                 //std::cout << a << std::endl;
                 // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
-                std::get<0>(out).getCellRef(r,phi,theta) = (0.5 *
-                        (F(uR_R, Cell::zeros(),Cell::zeros(),
-                           in.getCell(r,phi,theta),
-                           in.getRFromIndex(r),
-                           in.getPhiFromIndex(phi),
-                           in.getThetaFromIndex(theta))
-                        + F(uL_R, Cell::zeros(),Cell::zeros(),
-                            in.getCell(r,phi,theta),
-                            in.getRFromIndex(r),
-                            in.getPhiFromIndex(phi),
-                            in.getThetaFromIndex(theta))
-                        - aR * (uR_R - uL_R)));
-                std::get<1>(out).getCellRef(r,phi,theta) = (0.5 *
-                        (F(Cell::zeros(), Cell::zeros(),uR_phi,
-                            in.getCell(r,phi,theta),
-                            in.getRFromIndex(r),
-                            in.getPhiFromIndex(phi),
-                            in.getThetaFromIndex(theta))
-                        + F(Cell::zeros(), Cell::zeros(),uL_phi,
-                             in.getCell(r,phi,theta),
-                             in.getRFromIndex(r),
-                             in.getPhiFromIndex(phi),
-                             in.getThetaFromIndex(theta))
-                        - aphi * (uR_phi - uL_phi)));
-                std::get<2>(out).getCellRef(r,phi,theta) = (0.5 *
-                         (F(Cell::zeros(), uR_theta,Cell::zeros(),
-                            in.getCell(r,phi,theta),
-                            in.getRFromIndex(r),
-                            in.getPhiFromIndex(phi),
-                            in.getThetaFromIndex(theta))
-                         + F(Cell::zeros(), uL_theta,Cell::zeros(),
-                             in.getCell(r,phi,theta),
-                             in.getRFromIndex(r),
-                             in.getPhiFromIndex(phi),
-                             in.getThetaFromIndex(theta))
-                         - atheta * (uR_theta - uL_theta)));
-
+                std::get<0>(out).getCellRef(r,phi,theta) =
+                        0.5*(FluxR(uR_r)+FluxR(uL_r))-aR*(uR_r-uL_r);
+                std::get<1>(out).getCellRef(r,phi,theta) =
+                        0.5*(FluxPhi(uR_ph)+FluxPhi(uL_ph))-aR*(uR_ph-uL_ph);
+                std::get<2>(out).getCellRef(r,phi,theta) =
+                        0.5*(FluxTheta(uR_th)+FluxTheta(uL_th))-aR*(uR_th-uL_th);
             }
 
         }
@@ -278,7 +282,7 @@ Cell S(int x,int y,Cell val)
 void InitialConditions(SphericalGrid& grid) {
     for (int x = 0; x < grid.getSizeR(); x++) {
         for (int y = 0; y < grid.getSizePhi(); y++) {
-            double rho=0.00001/std::pow(grid.getRFromIndex(x),2);
+            double rho=0.1;
             double vx=0;
             double vy=0;
             double vz=0;
@@ -290,27 +294,35 @@ void InitialConditions(SphericalGrid& grid) {
             //        for (int x = 20; x < 40; x++){
             if(x>20 && x< 40 && y>45 && y<55)
             {
-                // rho=0.36*std::cos((x-30.0)/10);
-                // vx=100;
+                rho=0.36*std::cos((x-30.0)/10);
+                 vx=1000000;
             }
 
 
-            //nk=rho/m m=1.6733e-27
+            //nk=p_rho/m m=1.6733e-27
             //k=1.38044e-23
             double E = 2 * rho * m_div_k * T/(gamma-1)
                        + rho * (vx*vx + vy*vy + vz*vz)
                        + (Bx*Bx + By*By + Bz*Bz) /(2*mu);
 
-            grid.getCellRef(x,y,0) = {rho, vx, vy, vz,Bx,By,Bz,E};
-
+            Cell& c =grid.getCellRef(x,y,0);
+            c.p_rho = rho;
+            c.p_Vr = vx;
+            c.p_Vph = vy;
+            c.p_Vth = vz;
+            c.p_Br = Bx;
+            c.p_Bph = By;
+            c.p_Bth = Bz;
+            c.p_P = 100000;
         }
     }
+    grid.UpdateCons();
 }
 
 
 void ApplyBoundaryConditions(SphericalGrid& grid,double t)
 {
-    for (int x=0;x<grid.getSizePhi();x++) {
+   /* for (int x=0;x<grid.getSizePhi();x++) {
 
         double vx=0;
         double vy=0;
@@ -331,12 +343,13 @@ void ApplyBoundaryConditions(SphericalGrid& grid,double t)
 
 
         Cell& c = grid.getCellRef(1,x,0);
-        c.rho=rho;
-        c.E=E;
-        c.Vr=vx;
-        c.Vtheta=vz;
-        c.Vphi=vy;
+        c.p_rho=rho;
+        c.c_E=E;
+        c.p_Vr=vx;
+        c.p_Vth=vz;
+        c.p_Vph=vy;
     }
+    grid.UpdateCons();*/
 }
 
 
@@ -344,35 +357,42 @@ void ApplyBoundaryConditions(SphericalGrid& grid,double t)
 void RKIntegrator(SphericalGrid& grid, double dt,double& t)
 {
     t+=dt;
+
     double dr = grid.getRFromIndex(1)-grid.getRFromIndex(0);
     double dphi = (grid.getPhiFromIndex(1)-grid.getPhiFromIndex(0));
     double dtheta = grid.getThetaFromIndex(1)-grid.getThetaFromIndex(0);
+
     SphericalGrid fluxR = SphericalGrid::copyGrid(grid);
     SphericalGrid fluxPhi = SphericalGrid::copyGrid(grid);
     SphericalGrid fluxTheta = SphericalGrid::copyGrid(grid);
     std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> flux(fluxR,fluxPhi,fluxTheta);
-    CalculateFlux(flux,grid);
-    SphericalGrid k = SphericalGrid::copyGrid(grid);
+
+    grid.UpdatePrim();
+
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
-
-                k.getCellRef(r,phi,theta) = grid.getCell(r,phi,theta) - 0.5 * dt *
-                                                                        ( (std::get<0>(flux).getCell(r+1,phi,theta) - std::get<0>(flux).getCell(r,phi,theta))/dr
-                                                                          +(std::get<1>(flux).getCell(r,phi+1,theta) - std::get<1>(flux).getCell(r,phi,theta))/(dphi*grid.getRFromIndex(r)))
-                                            + 0.5 * dt * S(phi, r, grid.getCell(r,phi,theta));
+                Cell& c=grid.getCellRef(r,phi,theta);
+                Cell Dr = (grid.getCell(r+1,phi,theta)-grid.getCell(r-1,phi,theta))/(2*dr);
+                Cell Dphi = (grid.getCell(r,phi+1,theta)-grid.getCell(r,phi-1,theta))/(2*dphi * grid.getRFromIndex(r));
+                Cell Dtheta = (grid.getCell(r,phi,theta+1)-grid.getCell(r,phi,theta-1))/(2*dtheta * grid.getRFromIndex(r));
+                c = c -0.5 * dt * F(Dr,Dtheta,Dphi,c);
             }
         }
     }
-    ApplyBoundaryConditions(k,t);
-    CalculateFlux(flux, k);
+
+    grid.UpdateCons();
+
+    SphericalGrid k = SphericalGrid::copyGrid(grid);
+    CalculateFlux(flux, grid);
+
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
-                grid.getCellRef(r,phi,theta) = k.getCell(r,phi,theta) - dt *
-                                                                        ((std::get<0>(flux).getCell(r+1,phi,theta) - std::get<0>(flux).getCell(r,phi,theta))/dr
-                                                                         +(std::get<1>(flux).getCell(r,phi+1,theta) - std::get<1>(flux).getCell(r,phi,theta))/(dphi*grid.getRFromIndex(r)))
-                                               +  dt * S(phi, r, grid.getCell(r,phi,theta));
+                Cell& c=grid.getCellRef(r,phi,theta);
+                c = c - dt * (   (fluxR.getCell(r+1,phi,theta)     - fluxR.getCell(r,phi,theta)) /dr     +
+                        (fluxPhi.getCell(r,phi+1,theta)   - fluxPhi.getCell(r,phi,theta))/(dphi * grid.getRFromIndex(r))   +
+                        (fluxTheta.getCell(r,phi,theta+1) - fluxTheta.getCell(r,phi,theta))/(dtheta * grid.getRFromIndex(r)));
             }
         }
     }

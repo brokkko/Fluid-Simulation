@@ -14,7 +14,40 @@ SphericalGrid::SphericalGrid(unsigned int sizeR,unsigned int sizePhi,unsigned in
     this->minRadius = minRadius;
     this->maxRadius = maxRadius;
     this->maxPolarAngle = maxPolarAngle;
+
+    for (int theta = 0; theta < sizeTheta; theta++) {
+        for (int r = 0; r < sizeR; r++) {
+            for (int phi = 0; phi < sizePhi; phi++) {
+
+                double _r = minRadius + (maxRadius-minRadius)/sizeR * (r+0.5);
+                double dr =(maxRadius-minRadius)/sizeR;
+                double dphi = 2*M_PI/sizePhi;
+                double dtheta = 2*maxPolarAngle/sizePhi;
+                double _phi = ((double)phi+0.5)/sizePhi*2*M_PI;
+                double _theta = M_PI_2-maxPolarAngle+((double)theta+0.5)/sizePhi*2*maxPolarAngle;
+                double vol = _r*_r*std::sin(_theta)*dr*dphi*dtheta;
+                mesh[phi + r*sizePhi + theta*sizePhi*sizeR] = Cell(vol,_r,_phi,_theta);
+            }
+        }
+    }
+
 }
+
+void SphericalGrid::UpdatePrim()
+{
+    for(int i=0;i<sizeR*sizePhi*sizeTheta;i++)
+    {
+        mesh[i].UpdatePrim();
+    }
+}
+void SphericalGrid::UpdateCons()
+{
+    for(int i=0;i<sizeR*sizePhi*sizeTheta;i++)
+    {
+        mesh[i].UpdateCons();
+    }
+}
+
 
 Cell SphericalGrid::getCell(int R,int Phi,int Theta)
 {
@@ -30,8 +63,8 @@ Cell& SphericalGrid::getCellRef(int R,int Phi,int Theta)
 }
 void SphericalGrid::Fill(double v) {
     for (int i = 0; i < sizeR * sizePhi * sizeTheta; i++) {
-    mesh[i] = Cell::zeros();
-    mesh[i].rho=double(i)/(sizeR * sizePhi * sizeTheta)*v;
+    mesh[i] = Cell();
+    mesh[i].p_rho= double(i) / (sizeR * sizePhi * sizeTheta) * v;
     }
 }
 

@@ -52,12 +52,12 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             double radius=upperbound;
 
             Cell U =grid.getCell(x,y,0);
-            double Vr = U.Vr / U.rho;
-            double Vtheta = U.Vtheta / U.rho;
-            double Vphi = U.Vphi / U.rho;           double p = gamma * (U.E - 0.5 * U.rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
-                                - 0.5/mu * (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
+            double Vr = U.p_Vr / U.p_rho;
+            double Vtheta = U.p_Vth / U.p_rho;
+            double Vphi = U.p_Vph / U.p_rho;           double p = gamma * (U.c_E - 0.5 * U.p_rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
+                                                                           - 0.5/mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth));
 
-            double displayvar =U.E;//std::pow(grid.getRFromIndex(x),2);;
+            double displayvar =U.p_rho;//std::pow(grid.getRFromIndex(x),2);;
             r.setFillColor(toColor(displayvar,0,radius));
 
             r.setRotation((float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
@@ -73,15 +73,15 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     for (int y = 0; y < grid.getSizePhi(); y++)
     {
         for (int x = 0; x < grid.getSizeR(); x++){
-            sum+=grid.getCell(x,y,0).E;
+            sum+=grid.getCell(x,y,0).c_E;
             if (std::isnan(sum))
             {
-                std::cout<<"an";
+               // std::cout<<"an";
             }
         }
     }
 
-    std::string names[] ={"RHO","Vx","Vy","Vz","Br","Bphi","Btheta","E","P"};
+    std::string names[] ={"RHO","Vx","Vy","Vz","p_Br","p_Bph","p_Bth","c_E","P"};
     ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum;;
     t.setString(ss2.str());
     t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
@@ -92,6 +92,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
 }
 
 
+/*
 void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode) {
     //sf::Vertex* points=new sf::Vertex[grid.sizeX*grid.sizeY];
     sf::Vertex varr[grid.sizeX];
@@ -117,9 +118,9 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
             double radius=upperbound;
 
             Cell U =grid.mesh[x][y];
-            double p = gamma * (U.E - 1.0/2*U.rho* (U.Vr * U.Vr + U.Vphi * U.Vphi + U.Vtheta * U.Vtheta)
-                                - 1.0/(2*mu)*(U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
-            double P = p + (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta) / (2 * mu);
+            double p = gamma * (U.c_E - 1.0 / 2 * U.p_rho * (U.p_Vr * U.p_Vr + U.p_Vph * U.p_Vph + U.p_Vth * U.p_Vth)
+                                - 1.0/(2*mu)*(U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth));
+            double P = p + (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth) / (2 * mu);
             double displayvar=0;
             if (mode<8)
                 displayvar=reinterpret_cast<double*>(&U)[mode];
@@ -132,29 +133,29 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
             if (x%5 ==0 && y % 5 ==0)
             {
                 auto vec=sf::Vector2f(  float(x* segmentX)- (float)windowsizeX/2, float(y* segmentY)- (float)windowsizeY/2);
-                sf::Vector2f dir={(float)grid.mesh[x][y].Vr * ARROW_LEN_MULT, (float)grid.mesh[x][y].Vphi * ARROW_LEN_MULT};
+                sf::Vector2f dir={(float)grid.mesh[x][y].p_Vr * ARROW_LEN_MULT, (float)grid.mesh[x][y].p_Vph * ARROW_LEN_MULT};
                 l[2*(x/5+y/5*grid.sizeX/5)] = sf::Vertex(vec,sf::Color::Black);
                 l[2*(x/5+y/5*grid.sizeX/5)+1]=  sf::Vertex(vec+dir,sf::Color::Black);
 
             }
             if (y==mposy)
-                varr[x] = sf::Vertex(sf::Vector2f(float(x* segmentX)/2- (float)windowsizeX/2,(float)windowsizeY/2+graph_offset-graph_h/2-grid.mesh[x][y].E*graphm ),sf::Color::Magenta);
+                varr[x] = sf::Vertex(sf::Vector2f(float(x* segmentX)/2- (float)windowsizeX/2,(float)windowsizeY/2+graph_offset-graph_h/2- grid.mesh[x][y].c_E * graphm ), sf::Color::Magenta);
         }
 
         if (y==mposy)
         {
 
         }
-        varry[y] = sf::Vertex(sf::Vector2f(float(y* segmentX)/2,(float)windowsizeY/2+graph_offset-graph_h/2-grid.mesh[mposx][y].E*graphm ),sf::Color::Magenta);
+        varry[y] = sf::Vertex(sf::Vector2f(float(y* segmentX)/2,(float)windowsizeY/2+graph_offset-graph_h/2- grid.mesh[mposx][y].c_E * graphm ), sf::Color::Magenta);
     }
     window.draw(varr, grid.sizeX, sf::LinesStrip);
     window.draw(l, 2*((grid.sizeX)/5)*((grid.sizeY)/5), sf::Lines);
     window.draw(varry, grid.sizeY, sf::LinesStrip);
 
     Cell U =grid.mesh[mposx][mposy];
-    double p = gamma * (U.E - 1.0/2*U.rho* (U.Vr * U.Vr + U.Vphi * U.Vphi + U.Vtheta * U.Vtheta)
-                        - 1.0/(2*mu)*(U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta));
-    double P = p + (U.Br * U.Br + U.Bphi * U.Bphi + U.Btheta * U.Btheta) / (2 * mu);
+    double p = gamma * (U.c_E - 1.0 / 2 * U.p_rho * (U.p_Vr * U.p_Vr + U.p_Vph * U.p_Vph + U.p_Vth * U.p_Vth)
+                        - 1.0/(2*mu)*(U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth));
+    double P = p + (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth) / (2 * mu);
 
 
     double sum=0;
@@ -178,9 +179,9 @@ void show(Grid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int
     t.setPosition(window.mapPixelToCoords( {mPos.x,mPos.y+20}));
     window.draw(t);
 
-    std::string names[] ={"RHO","Vx","Vy","Vz","Br","Bphi","Btheta","E","P"};
+    std::string names[] ={"RHO","Vx","Vy","Vz","p_Br","p_Bph","p_Bth","c_E","P"};
     ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode]<<" sum: "<<sum;
     t.setString(ss2.str());
     t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
     window.draw(t);
-}
+}*/
