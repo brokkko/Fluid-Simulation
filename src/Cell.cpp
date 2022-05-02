@@ -20,6 +20,9 @@ void Cell::UpdatePrim()
     double V2 = p_Vr * p_Vr + p_Vph * p_Vph + p_Vth * p_Vth;
     double B2 = p_Br * p_Br + p_Bph * p_Bph + p_Bth * p_Bth;
     p_P= (gamma - 1) * (c_E/volume - 0.5 * p_rho * V2 - 0.5 / mu * B2) + 0.5 / mu * B2;
+    if(p_P<0) {
+        std::cout << "neg P\n";
+    }
 }
 void Cell::UpdateCons()
 {
@@ -34,6 +37,7 @@ void Cell::UpdateCons()
     double B2 = p_Br * p_Br + p_Bph * p_Bph + p_Bth * p_Bth;
     double p = p_P - 0.5 * B2 / mu;
     c_E = (p / (gamma - 1) + 0.5 * p_rho * V2 + 0.5*B2/mu) * volume;
+    if(c_E<0) std::cout<<"neg E\n";
 }
 
 

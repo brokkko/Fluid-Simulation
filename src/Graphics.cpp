@@ -57,7 +57,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             double Vphi = U.p_Vph / U.p_rho;           double p = gamma * (U.c_E - 0.5 * U.p_rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
                                                                            - 0.5/mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth));
 
-            double displayvar =U.p_rho;//std::pow(grid.getRFromIndex(x),2);;
+            double displayvar =U.p_P;//std::pow(grid.getRFromIndex(x),2);;
             r.setFillColor(toColor(displayvar,0,radius));
 
             r.setRotation((float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);

@@ -14,7 +14,7 @@ int main()
     double time=0;
     bool paused=false;
     bool shift =false;
-    double upperbound[9] ={0.02,1,1,1,1,1,1,100000,100000};
+    double upperbound[9] ={0.40,1,1,1,1,1,1,100000000,100000000};
     int currentmode = 0;
     sf::RenderWindow window(sf::VideoMode(700, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
     window.setActive(true);
