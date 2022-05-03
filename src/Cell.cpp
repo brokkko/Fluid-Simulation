@@ -10,7 +10,15 @@ Cell& Cell::zeros() {
 
 void Cell::UpdatePrim()
 {
+    if(c_rho<0)
+    {
+#if defined(PRINT_NEG)
+        std::cout<<"neg Rho\n";
+#endif
+        c_rho=small_rho*volume;
+    }
     p_rho = c_rho/volume;
+
     p_Vr=c_Mr/p_rho/volume;
     p_Vph=c_Mph/p_rho/volume;
     p_Vth=c_Mth/p_rho/volume;
@@ -18,10 +26,23 @@ void Cell::UpdatePrim()
     p_Bph=c_Bph/volume;
     p_Bth=c_Bth/volume;
     double V2 = p_Vr * p_Vr + p_Vph * p_Vph + p_Vth * p_Vth;
+    double M2 = c_Mr * c_Mr + c_Mph * c_Mph + c_Mth * c_Mth;
     double B2 = p_Br * p_Br + p_Bph * p_Bph + p_Bth * p_Bth;
-    p_P= (gamma - 1) * (c_E/volume - 0.5 * p_rho * V2 - 0.5 / mu * B2) + 0.5 / mu * B2;
+    double cB2 = c_Br * c_Br + c_Bph * c_Bph + c_Bth * c_Bth;
+
+    if(c_E<0) {
+#if defined(PRINT_NEG)
+        std::cout<<"neg E\n";
+#endif
+        c_E = small_P/(gamma-1) + 0.5*(M2/c_rho+cB2);
+    }
+    p_P= (gamma - 1) * (c_E/volume - 0.5 * p_rho * V2 - 0.5 / mu * B2);// + 0.5 / mu * B2;
     if(p_P<0) {
+#if defined(PRINT_NEG)
         std::cout << "neg P\n";
+#endif
+        p_P = small_P;
+        c_E = (p_P / (gamma - 1) + 0.5 * p_rho * V2 + 0.5 * B2/mu) * volume;
     }
 }
 void Cell::UpdateCons()
@@ -34,10 +55,12 @@ void Cell::UpdateCons()
     c_Bph = p_Bph * volume;
     c_Bth = p_Bth * volume;
     double V2 = p_Vr * p_Vr + p_Vph * p_Vph + p_Vth * p_Vth;
+    double M2 = c_Mr * c_Mr + c_Mph * c_Mph + c_Mth * c_Mth;
     double B2 = p_Br * p_Br + p_Bph * p_Bph + p_Bth * p_Bth;
+    double cB2 = c_Br * c_Br + c_Bph * c_Bph + c_Bth * c_Bth;
     double p = p_P - 0.5 * B2 / mu;
-    c_E = (p / (gamma - 1) + 0.5 * p_rho * V2 + 0.5*B2/mu) * volume;
-    if(c_E<0) std::cout<<"neg E\n";
+    c_E = (p_P / (gamma - 1) + 0.5 * p_rho * V2 + 0.5 * B2/mu) * volume;
+
 }
 
 

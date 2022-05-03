@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 project(Fluid_Simulation)
 
 set(CMAKE_CXX_STANDARD 20)
-#set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS "-O3")
 set(netcdf_DIR "C:/netCDF 4.8.1/lib/cmake/netCDF")
 
 include_directories(headers /usr/include C:/SFML/include)

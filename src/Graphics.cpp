@@ -40,32 +40,70 @@ sf::Color toColor(double val,double min,double max)
     return c;
 }
 
+sf::Vector3f toSpherical(sf::Vector3f vec)
+{
+    double r = std::sqrt(vec.x*vec.x + vec.y*vec.y +vec.z*vec.z);
+    double theta = std::atan( std::sqrt(vec.x*vec.x + vec.y*vec.y)/vec.z);
+    double phi =  std::atan2(vec.z,-vec.y);
+    return sf::Vector3f(r,phi,theta);
+}
+
+
+
+
 void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode) {
     sf::RectangleShape r;
+    sf::Vertex varr[grid.getSizeR()];
+    sf::Vertex varry[grid.getSizePhi()];
+
+    double graphm=1.0*1000;
+    int graph_h=100;
+    int graph_offset=-50;
 
     unsigned int windowsizeX = window.getSize().x;
     unsigned int windowsizeY = window.getSize().y;
     double maxRadius = std::min((double)windowsizeX/2,(double)windowsizeY/2);
     double CellRSize= maxRadius / grid.getSizeR();
+
+    auto mPos=sf::Vector2i (window.mapPixelToCoords( sf::Mouse::getPosition(window)));
+
+    auto mpos = toSpherical(sf::Vector3f{0,(float)mPos.x,-(float)mPos.y});
+
+    mpos.x=clamp( ((unsigned int)(mpos.x/maxRadius*grid.getSizeR())),(unsigned int)0,grid.getSizeR());
+    mpos.y=(int)((mpos.y+M_PI)/(2*M_PI)*grid.getSizePhi());
+
     for (int y = 0; y < grid.getSizePhi(); y++){
         for (int x = 0; x < grid.getSizeR(); x++){
             double radius=upperbound;
 
             Cell U =grid.getCell(x,y,0);
-            double Vr = U.p_Vr / U.p_rho;
-            double Vtheta = U.p_Vth / U.p_rho;
-            double Vphi = U.p_Vph / U.p_rho;           double p = gamma * (U.c_E - 0.5 * U.p_rho * (Vr * Vr + Vtheta * Vtheta + Vphi * Vphi)
-                                                                           - 0.5/mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth));
 
-            double displayvar =U.p_P;//std::pow(grid.getRFromIndex(x),2);;
+            double displayvar =U.p_rho;//std::pow(grid.getRFromIndex(x),2);;
             r.setFillColor(toColor(displayvar,0,radius));
 
             r.setRotation((float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
             r.setSize(sf::Vector2f(CellRSize,2*M_PI*CellRSize*x/grid.getSizePhi()));
             r.setPosition(sf::Vector2f(x*CellRSize*std::cos(grid.getPhiFromIndex(y)),x*CellRSize*std::sin(grid.getPhiFromIndex(y))));
             window.draw(r);
+            if (y==mpos.y)
+                varr[x] = sf::Vertex(sf::Vector2f(float(x* CellRSize)- (float)windowsizeX/2,(float)windowsizeY/2+graph_offset-graph_h/2- grid.getCell(x,y,0).p_rho * graphm ), sf::Color::Magenta);
+
         }
+    varry[y] = sf::Vertex(sf::Vector2f(float(y* CellRSize),(float)windowsizeY/2+graph_offset-graph_h/2- grid.getCell(mpos.x,y,0).p_rho * graphm ), sf::Color::Magenta);
     }
+
+    window.draw(varr, grid.getSizeR(), sf::LinesStrip);
+    window.draw(varry, grid.getSizePhi(), sf::LinesStrip);
+
+
+
+    std::stringstream ss;
+    ss<<grid.getCell(mpos.x,mpos.y,0).p_rho;
+    t.setString(ss.str());
+    t.setPosition(mPos.x,mPos.y+20);
+    window.draw(t);
+
+
 
     std::stringstream ss2;
 
@@ -73,7 +111,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     for (int y = 0; y < grid.getSizePhi(); y++)
     {
         for (int x = 0; x < grid.getSizeR(); x++){
-            sum+=grid.getCell(x,y,0).c_E;
+            sum+=grid.getCell(x,y,0).c_rho;
             if (std::isnan(sum))
             {
                // std::cout<<"an";
@@ -82,7 +120,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     }
 
     std::string names[] ={"RHO","Vx","Vy","Vz","p_Br","p_Bph","p_Bth","c_E","P"};
-    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum;;
+    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum;
     t.setString(ss2.str());
     t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
     window.draw(t);
