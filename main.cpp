@@ -6,11 +6,41 @@
 #include "src/Grid.h"
 #include "src/Simulation.h"
 #include "src/Constants.h"
+#include "src/ReadData.h"
 // dU/dt = a*dU/dx
+
+double* getDensity(){
+    double *data = nullptr; int dataSize = 0;
+    ReadData reader("../data/bnd.nc");
+    reader.readData("D", &data, &dataSize);
+    auto *density = new double [180];
+    int index = 0;
+    for(int i=180*30; i<180*31; i++){
+        density[index++] = data[i];
+    }
+    free(data);
+    return density;
+}
+
+double* getVelocity(){
+    double *data = nullptr; int dataSize = 0;
+    ReadData reader("../data/bnd.nc");
+    reader.readData("V1", &data, &dataSize);
+    auto *velocity = new double [180];
+    int index = 0;
+    for(int i=180*30; i<180*31; i++){
+        velocity[index++] = data[i];
+    }
+    free(data);
+    return velocity;
+}
 
 
 int main()
 {
+    //getDensity();
+    //getVelocity();
+
     double time=0;
     bool paused=false;
     bool shift =false;
