@@ -114,7 +114,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             sum+=grid.getCell(x,y,0).c_rho;
             if (std::isnan(sum))
             {
-               // std::cout<<"an";
+                // std::cout<<"an";
             }
         }
     }
