@@ -7,7 +7,7 @@
 
 #define ctg(x) std::cos(x)/std::sin(x)
 #define clamp(x, y, z) std::max(y, std::min(x, z))
-#define DT 250
+#define DT 120
 #define CELL_SIZE 1
 #define COLOR_SCHEME 2
 #define mu 1.2566e-8

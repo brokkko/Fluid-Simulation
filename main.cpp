@@ -38,19 +38,20 @@ double* getVelocity(){
 
 int main()
 {
-    //getDensity();
-    //getVelocity();
+    // getDensity();
+    // getVelocity();
+
 
     double time=0;
     bool paused=false;
     bool shift =false;
-    double upperbound[9] ={0.40,1,1,1,1,1,1,100000000,100000000};
+    double upperbound[9] ={1e-9,1,1,1,1,1,1,100000000,100000000};
     int currentmode = 0;
     sf::RenderWindow window(sf::VideoMode(700, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
     window.setActive(true);
     window.setFramerateLimit(60);
     //Grid grid(70,70);
-    SphericalGrid grid(70,70,1,1.497131e10,2.28e11,M_PI_2);
+    SphericalGrid grid(70,180,1,1.497131e10,2.28e11,M_PI_2);
     InitialConditions(grid);
 //grid.Fill(10);
     sf::View w;

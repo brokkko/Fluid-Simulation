@@ -14,8 +14,8 @@ Cell SlopeLim(Cell r)
     auto res_p = reinterpret_cast<double*>(&res);
     auto r_p = reinterpret_cast<double*>(&r);
     for(int i=0;i<16;i++)
-        res_p[i] = std::max(0.0, std::min(1.0, r_p[i]));
-        //res_p[i]=std::max(0.0,std::max(std::min(2*r_p[i],1.0),std::min(r_p[i],2.0)));
+        //res_p[i] = std::max(0.0, std::min(1.0, r_p[i]));
+        res_p[i]=std::max(0.0,std::max(std::min(2*r_p[i],1.0),std::min(r_p[i],2.0)));
     return res;
 
 
@@ -147,9 +147,10 @@ Cell FluxPhi(Cell U)
     double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
     Cell res  = U;
     res.c_rho = U.c_Mph;
-    res.c_Mr  = U.c_Mr *  U.p_Vph - U.p_Bph * U.p_Br + U.p_P;
-    res.c_Mph = U.c_Mph * U.p_Vph - U.p_Bph * U.p_Bph;
+    res.c_Mr  = U.c_Mr *  U.p_Vph - U.p_Bph * U.p_Br ;
+    res.c_Mph = U.c_Mph * U.p_Vph - U.p_Bph * U.p_Bph + U.p_P;
     res.c_Mth = U.c_Mth * U.p_Vph - U.p_Bph * U.p_Bth;
+
 
     res.c_Br = 0;
     res.c_Bph = 0;
@@ -162,9 +163,9 @@ Cell FluxTheta(Cell U)
     double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
     Cell res  = U;
     res.c_rho = U.c_Mth;
-    res.c_Mr  = U.c_Mr  * U.p_Vth - U.p_Bth * U.p_Br + U.p_P;
+    res.c_Mr  = U.c_Mr  * U.p_Vth - U.p_Bth * U.p_Br ;
     res.c_Mph = U.c_Mph * U.p_Vth - U.p_Bth * U.p_Bph;
-    res.c_Mth = U.c_Mth * U.p_Vth - U.p_Bth * U.p_Bth;
+    res.c_Mth = U.c_Mth * U.p_Vth - U.p_Bth * U.p_Bth + U.p_P;
 
     res.c_Br = 0;
     res.c_Bph = 0;
@@ -260,8 +261,9 @@ void InitialConditions(SphericalGrid& grid) {
             //        for (int x = 20; x < 40; x++){
             if(x>20 && x< 40 && y>45 && y<55)
             {
-                rho=0.02;
-                 vx=1000000;
+                rho=small_rho*10;
+                //vx=700000;
+                vy=200000;
             }
 
 
@@ -298,10 +300,10 @@ void ApplyBoundaryConditions(SphericalGrid& grid,double t)
         double Bz=0.000;
         double T =273;
         double rho=small_rho;
-        if(x>40 && x< 45 || x>65 && x< 70)
+        if( x>5 && x< 25)
         {
-            rho=small_rho;
-            vx=0;
+           // rho=small_rho*10;
+            //vx=400000;
         }
         double E = 2 * rho * m_div_k * T/(gamma-1)
                    + rho * (vx*vx + vy*vy + vz*vz)
@@ -347,6 +349,10 @@ void RKIntegrator(SphericalGrid& grid, double dt,double& t)
                 Cell Dphi = (grid.getCell(r,phi+1,theta)-grid.getCell(r,phi-1,theta))/(2*dphi * grid.getRFromIndex(r));
                 Cell Dtheta = (grid.getCell(r,phi,theta+1)-grid.getCell(r,phi,theta-1))/(2*dtheta * grid.getRFromIndex(r));
                 c = c -0.5 * dt * F(Dr,Dtheta,Dphi,c);
+                if (r==30 && phi == 50)
+                {
+                    int a=0;
+                }
             }
         }
     }

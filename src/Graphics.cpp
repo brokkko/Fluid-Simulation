@@ -56,7 +56,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     sf::Vertex varr[grid.getSizeR()];
     sf::Vertex varry[grid.getSizePhi()];
 
-    double graphm=1.0*1000;
+    double graphm=1.0*100*1e9;
     int graph_h=100;
     int graph_offset=-50;
 
@@ -120,7 +120,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     }
 
     std::string names[] ={"RHO","Vx","Vy","Vz","p_Br","p_Bph","p_Bth","c_E","P"};
-    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum;
+    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum <<" mpos: " << mpos.x <<" "<<mpos.y;
     t.setString(ss2.str());
     t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
     window.draw(t);
