@@ -65,12 +65,19 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
     double phi = U.phi;
     double theta = U.theta;
 
-    double drhodt = 1. /(r * r) * (2 * r * U.p_rho * U.p_Vr + r * r * (Dr.p_rho * U.p_Vr + U.p_rho * Dr.p_Vr))
-                 + 1.0 /(r * std::sin(theta)) * (std::cos(theta) * U.p_rho * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vth + U.p_rho * Dtheta.p_Vth))
-                 + 1.0 / r * (U.p_rho * Dphi.p_Vph + U.p_Vph * Dphi.p_rho);
+    double drhodt = 1. / (r * r) * (2 * r * U.p_rho * U.p_Vr + r * r * (Dr.p_rho * U.p_Vr + U.p_rho * Dr.p_Vr))
+                 + 1.0 / (r * std::sin(theta)) * (std::cos(theta) * U.p_rho * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vth + U.p_rho * Dtheta.p_Vth))
+                 + 1.0 / (r * std::sin(theta)) * (U.p_rho * Dphi.p_Vph + U.p_Vph * Dphi.p_rho);
+                // + 1.0 /(r * std::sin(theta)) * (std::cos(theta) * U.p_rho * U.p_Vth + std::sin(theta) * (0 * U.p_Vth + U.p_rho * 0));
+
+    double dp_Vrdt = (Dr.p_rho*U.p_Vr*U.p_Vr + 2 * U.p_rho * Dr.p_Vr * U.p_Vr
+                    +Dphi.p_rho*U.p_Vr*U.p_Vph + U.p_rho * Dphi.p_Vr * U.p_Vph + U.p_rho * U.p_Vr * Dphi.p_Vph
+                    +Dtheta.p_rho*U.p_Vr*U.p_Vth + U.p_rho * Dtheta.p_Vr * U.p_Vth + U.p_rho * U.p_Vr * Dtheta.p_Vth
+                    +Dr.p_P);
 
 
-    double Mrdt = (-((U.p_rho * U.p_Vth * U.p_Vth + U.p_rho * U.p_Vph * U.p_Vph) / r
+
+    double Mrdt = (-((U.p_rho * U.p_Vth * U.p_Vth + U.p_rho * U.p_Vph * U.p_Vph) /// r
                      - Dr.p_P
                      - (U.p_rho * G * Ms) / (r * r)
                      + U.p_Br / mu * Dr.p_Br
@@ -116,9 +123,11 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
 
     Cell res = U;
     res.p_rho = drhodt;
-    res.p_Vr =  (Mrdt - drhodt*U.p_Vr )/U.p_rho;
+    //res.p_Vr =  (Mrdt - drhodt*U.p_Vr )/U.p_rho;
+    res.p_Vr =  (dp_Vrdt - drhodt*U.p_Vr )/U.p_rho;
     res.p_Vph = (Mphidt - drhodt*U.p_Vph)/U.p_rho;
     res.p_Vth = (Mthetadt - drhodt*U.p_Vth)/U.p_rho;
+    res.p_Vth=0;
     res.p_Br = 0;
     res.p_Bph = 0;
     res.p_Bth = 0;
@@ -130,15 +139,18 @@ Cell FluxR(Cell U)
 {
     double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
     Cell res  = U;
-    res.c_rho = U.c_Mr;
-    res.c_Mr  = U.c_Mr  * U.p_Vr - U.p_Br * U.p_Br + U.p_P;
-    res.c_Mph = U.c_Mph * U.p_Vr - U.p_Br * U.p_Bph;
-    res.c_Mth = U.c_Mth * U.p_Vr - U.p_Br * U.p_Bth;
+
+
+
+    res.c_rho =  U.p_Vr * U.p_rho * U.volume;
+    res.c_Mr  = (U.p_Vr * U.p_Vr * U.p_rho  - U.p_Br * U.p_Br + U.p_P) * U.volume;
+    res.c_Mph = (U.p_Vph * U.p_Vr * U.p_rho - U.p_Br * U.p_Bph) * U.volume;
+    res.c_Mth = (U.p_Vth * U.p_Vr * U.p_rho - U.p_Br * U.p_Bth) * U.volume;
 
     res.c_Br = 0;
     res.c_Bph = 0;
     res.c_Bth = 0;
-    res.c_E = (U.c_E + U.p_P)*U.p_Vr - U.p_Br*vB;
+    res.c_E = ((U.c_E/U.volume + U.p_P)*U.p_Vr - U.p_Br*vB)*U.volume;
     return res;
 }
 
@@ -262,8 +274,8 @@ void InitialConditions(SphericalGrid& grid) {
             if(x>20 && x< 40 && y>45 && y<55)
             {
                 rho=small_rho*10;
-                //vx=700000;
-                vy=200000;
+                vx=700000;
+                //vy=700000;
             }
 
 
@@ -345,7 +357,7 @@ void RKIntegrator(SphericalGrid& grid, double dt,double& t)
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
                 Cell& c=grid.getCellRef(r,phi,theta);
-                Cell Dr = (grid.getCell(r+1,phi,theta)-grid.getCell(r-1,phi,theta))/(2*dr);
+                Cell Dr = (grid.getCell(r+1,phi,theta)-grid.getCell(r-1,phi,theta))/(2*dr)*10;
                 Cell Dphi = (grid.getCell(r,phi+1,theta)-grid.getCell(r,phi-1,theta))/(2*dphi * grid.getRFromIndex(r));
                 Cell Dtheta = (grid.getCell(r,phi,theta+1)-grid.getCell(r,phi,theta-1))/(2*dtheta * grid.getRFromIndex(r));
                 c = c -0.5 * dt * F(Dr,Dtheta,Dphi,c);

@@ -78,7 +78,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
 
             Cell U =grid.getCell(x,y,0);
 
-            double displayvar =U.p_rho;//std::pow(grid.getRFromIndex(x),2);;
+            double displayvar =U.p_rho;//d::pow(grid.getRFromIndex(x),2);;
             r.setFillColor(toColor(displayvar,0,radius));
 
             r.setRotation((float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
