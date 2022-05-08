@@ -3,27 +3,17 @@
 #include <cmath>
 #include "Grid.h"
 #include "SphericalGrid.h"
-
-// one variable!!
-// ospre flux limiter
-Cell SlopeLim(Cell r);
+#include "fluxes.h"
+#include "Derivative.h"
+#include "Conditions.h"
+#include "tvd.h"
 
 double nonZeroDouble(double val);
 
 Cell nonZeroDenom(Cell denom);
 
-Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U, double r, double phi, double theta);
-
-Cell FluxR(Cell U);
-Cell FluxPhi(Cell U);
-Cell FluxTheta(Cell U);
-
-void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, SphericalGrid& in);
 
 Cell S(int x,int y,Cell val);
-
-void InitialConditions(SphericalGrid& grid);
-void ApplyBoundaryConditions(SphericalGrid& grid,double t);
 
 void RKIntegrator(SphericalGrid& grid, double dt,double& t);
 #endif //FLUID_SIMULATION_SIMULATION_H
