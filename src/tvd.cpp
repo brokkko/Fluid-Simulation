@@ -35,7 +35,7 @@ Cell SlopeLim(Cell r)
     for(int i=0;i<16;i++)
         //res_p[i] = std::max(0.0, std::min(1.0, r_p[i]));
         res_p[i]=std::max(0.0,std::max(std::min(2*r_p[i],1.0),std::min(r_p[i],2.0)));
-    //res_p[i]=std::max(0.0, 1.5 * (r_p[i] * r_p[i] + r_p[i]) / (r_p[i] * r_p[i] + r_p[i] + 1));
+        //res_p[i]=std::max(0.0, 1.5 * (r_p[i] * r_p[i] + r_p[i]) / (r_p[i] * r_p[i] + r_p[i] + 1));
     return res;
 
 

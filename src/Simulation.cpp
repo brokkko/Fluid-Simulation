@@ -48,9 +48,9 @@ void RKIntegrator(SphericalGrid& grid, double dt,double& t)
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
-                DR.getCellRef(r,phi,theta) = (grid.getCell(r+1,phi,theta)-grid.getCell(r-1,phi,theta))/(2*dr);
-                DPhi.getCellRef(r,phi,theta) = (grid.getCell(r,phi+1,theta)-grid.getCell(r,phi-1,theta))/(2*dphi /** grid.getRFromIndex(r)*/);
-                DTheta.getCellRef(r,phi,theta) = (grid.getCell(r,phi,theta+1)-grid.getCell(r,phi,theta-1))/(2*dtheta * grid.getRFromIndex(r));
+                DR.getCellRef(r,phi,theta) = (grid.getCell(r+1,phi,theta)-grid.getCell(r-1,phi,theta))/(2*1/*dr*/);
+                DPhi.getCellRef(r,phi,theta) = (grid.getCell(r,phi+1,theta)-grid.getCell(r,phi-1,theta))/(2*1/*dphi * grid.getRFromIndex(r)*/);
+                DTheta.getCellRef(r,phi,theta) = (grid.getCell(r,phi,theta+1)-grid.getCell(r,phi,theta-1))/(2*1/*dtheta * grid.getRFromIndex(r)*/);
             }
         }
     }
@@ -85,9 +85,9 @@ void RKIntegrator(SphericalGrid& grid, double dt,double& t)
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
                 Cell& c=grid.getCellRef(r,phi,theta);
-                c = c - dt * (   (fluxR.getCell(r+1,phi,theta)     - fluxR.getCell(r,phi,theta)) /dr     +
-                        (fluxPhi.getCell(r,phi+1,theta)   - fluxPhi.getCell(r,phi,theta))/(dphi * grid.getRFromIndex(r))  +
-                        (fluxTheta.getCell(r,phi,theta+1) - fluxTheta.getCell(r,phi,theta))/(dtheta * grid.getRFromIndex(r)));
+                c = c - dt * (   (fluxR.getCell(r+1,phi,theta)     - fluxR.getCell(r,phi,theta)) /1/*dr*/     +
+                        (fluxPhi.getCell(r,phi+1,theta)   - fluxPhi.getCell(r,phi,theta))/(1/*dphi * grid.getRFromIndex(r)*/)  +
+                        (fluxTheta.getCell(r,phi,theta+1) - fluxTheta.getCell(r,phi,theta))/(1/*dtheta * grid.getRFromIndex(r)*/));
             }
         }
     }

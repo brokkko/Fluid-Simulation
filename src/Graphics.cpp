@@ -79,8 +79,10 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             Cell U =grid.getCell(x,y,0);
 
             double displayvar=reinterpret_cast<double*>(&U)[mode];
+            int lowerbound=0;
+            if (mode >0 && mode < 7) lowerbound = 1;
             //double displayvar =U.p_rho*pow(U.r/grid.getRFromIndex(grid.getSizeR()),2);
-            r.setFillColor(toColor(displayvar,0,radius));
+            r.setFillColor(toColor(displayvar,-radius*lowerbound,radius));
 
             r.setRotation((float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
             r.setSize(sf::Vector2f(CellRSize,2*M_PI*CellRSize*x/grid.getSizePhi()));

@@ -10,7 +10,7 @@ Cell FluxR(Cell U)
     Cell res  = U;
 
     res.c_rho =  U.p_Vr * U.p_rho * U.volume;
-    res.c_Mr  = (U.p_Vr * U.p_Vr * U.p_rho  - U.p_Br * U.p_Br + U.p_P) * U.volume;
+    res.c_Mr  = (U.p_Vr * U.p_Vr * U.p_rho  - U.p_Br * U.p_Br /*+ U.p_P*/) * U.volume;
     res.c_Mph = (U.p_Vph * U.p_Vr * U.p_rho - U.p_Br * U.p_Bph) * U.volume;
     res.c_Mth = (U.p_Vth * U.p_Vr * U.p_rho - U.p_Br * U.p_Bth) * U.volume;
 
@@ -27,7 +27,7 @@ Cell FluxPhi(Cell U)
     Cell res  = U;
     res.c_rho = U.p_Vph * U.p_rho * U.volume;
     res.c_Mr  = (U.p_Vr  * U.p_rho * U.p_Vph - U.p_Bph * U.p_Br)* U.volume ;
-    res.c_Mph = (U.p_Vph * U.p_rho * U.p_Vph - U.p_Bph * U.p_Bph + U.p_P)* U.volume;
+    res.c_Mph = (U.p_Vph * U.p_rho * U.p_Vph - U.p_Bph * U.p_Bph /*+ U.p_P*/)* U.volume;
     res.c_Mth = (U.p_Vth * U.p_rho * U.p_Vph - U.p_Bph * U.p_Bth)* U.volume;
 
 
