@@ -14,6 +14,6 @@ Cell FluxR(Cell U);
 Cell FluxPhi(Cell U);
 Cell FluxTheta(Cell U);
 
-void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, SphericalGrid& in);
+void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, SphericalGrid& in, std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> grad);
 
 #endif //FLUID_SIMULATION_FLUXES_H

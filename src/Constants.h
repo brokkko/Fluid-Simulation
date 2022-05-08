@@ -8,7 +8,7 @@
 
 #define ctg(x) std::cos(x)/std::sin(x)
 #define clamp(x, y, z) std::max(y, std::min(x, z))
-#define DT 0.001
+#define DT 200
 #define CELL_SIZE 1
 #define COLOR_SCHEME 0
 #define mu 1.2566e-8
@@ -19,10 +19,14 @@
 #define small_rho 1e-10
 #define G 0 //6.670e-11
 #define gamma 5./3
-#define A_SPEED 200
+#define A_SPEED 2000000
 #define USE_CONST_A
 //#define PRINT_NEG
 #define ARROW_LEN_MULT 0.1f
+
+#define T_R 0
+#define T_PHI 1
+#define T_THETA 2
 
 
 

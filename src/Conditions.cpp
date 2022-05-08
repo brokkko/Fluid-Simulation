@@ -8,7 +8,7 @@ void InitialConditions(SphericalGrid& grid) {
     for (int x = 0; x < grid.getSizeR(); x++) {
         for (int y = 0; y < grid.getSizePhi(); y++) {
             double rho=small_rho;
-            double vx=100;
+            double vx=0;
             double vy=0;
             double vz=0;
             double Bx=0.000;
@@ -17,12 +17,12 @@ void InitialConditions(SphericalGrid& grid) {
             double T =10;
             // for (int y = 45; y < 55; y++){
             //        for (int x = 20; x < 40; x++){
-            if(x>20 && x< 40 && y>45 && y<55)
+            if(x>50 && x< 60 && y>45 && y<55)
             {
                 rho=small_rho*20;
-                vx=100;
-                T=30;
-                vy=0;
+                vx=0;
+                T=100000;
+                vy=50000;
             }
 
 

@@ -27,38 +27,44 @@ Cell S(int x,int y,Cell val)
     else return {0,0,0,0};
 }
 
-void RKIntegrator(SphericalGrid& grid, double dt,double& t)
+void CalculateGradients(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> grad,SphericalGrid& grid)
 {
-    t+=dt;
-
     double dr = grid.getRFromIndex(1)-grid.getRFromIndex(0);
     double dphi = (grid.getPhiFromIndex(1)-grid.getPhiFromIndex(0));
     double dtheta = grid.getThetaFromIndex(1)-grid.getThetaFromIndex(0);
 
-    SphericalGrid fluxR = SphericalGrid::copyGrid(grid);
-    SphericalGrid fluxPhi = SphericalGrid::copyGrid(grid);
-    SphericalGrid fluxTheta = SphericalGrid::copyGrid(grid);
-
-    SphericalGrid DR = SphericalGrid::copyGrid(grid);
-    SphericalGrid DPhi = SphericalGrid::copyGrid(grid);
-    SphericalGrid DTheta = SphericalGrid::copyGrid(grid);
-
-    grid.UpdatePrim();
-
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
-                DR.getCellRef(r,phi,theta) = (grid.getCell(r+1,phi,theta)-grid.getCell(r-1,phi,theta))/(2*1/*dr*/);
-                DPhi.getCellRef(r,phi,theta) = (grid.getCell(r,phi+1,theta)-grid.getCell(r,phi-1,theta))/(2*1/*dphi * grid.getRFromIndex(r)*/);
-                DTheta.getCellRef(r,phi,theta) = (grid.getCell(r,phi,theta+1)-grid.getCell(r,phi,theta-1))/(2*1/*dtheta * grid.getRFromIndex(r)*/);
+                auto r1 =     grid.getCell(r+1,phi,theta);
+                auto r_1 =    grid.getCell(r-1,phi,theta);
+                auto phi1 =   grid.getCell(r,phi+1,theta);
+                auto phi_1 =  grid.getCell(r,phi-1,theta);
+                auto theta1 = grid.getCell(r,phi,theta+1);
+                auto theta_1 =grid.getCell(r,phi,theta-1);
+                auto curr =   grid.getCell(r,phi,theta);
+
+                auto Dr=      (r1     - r_1)     / (2*dr);
+                auto Dphi =   (phi1   - phi_1)   / (2*dphi * grid.getRFromIndex(r));
+                auto Dtheta = (theta1 - theta_1) / (2*dtheta * grid.getRFromIndex(r));
+
+                auto rR =     (curr - r_1)     / nonZeroDenom(r1     - curr);
+                auto rPhi =   (curr - phi_1)   / nonZeroDenom(phi1   - curr);
+                auto rTheta = (curr - theta_1) / nonZeroDenom(theta1 - curr);
+                //TODO: Check for mass loss
+                std::get<T_R>(grad).getCellRef(r,phi,theta)     = SlopeLim(rR)     * Dr;
+                std::get<T_PHI>(grad).getCellRef(r,phi,theta)   = SlopeLim(rPhi)   * Dphi;
+                std::get<T_THETA>(grad).getCellRef(r,phi,theta) = SlopeLim(rTheta) * Dtheta;
             }
         }
     }
+}
 
-    std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> flux(fluxR,fluxPhi,fluxTheta);
-
-
-
+void PredictorStep(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> grad,SphericalGrid& grid,double dt)
+{
+    SphericalGrid& DR =std::get<T_R>(grad);
+    SphericalGrid& DPhi =std::get<T_PHI>(grad);
+    SphericalGrid& DTheta =std::get<T_THETA>(grad);
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
@@ -75,22 +81,55 @@ void RKIntegrator(SphericalGrid& grid, double dt,double& t)
             }
         }
     }
+}
 
-    grid.UpdateCons();
+void ApplyFluxes(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> flux,SphericalGrid& grid,double dt)
+{
+    double dr = grid.getRFromIndex(1)-grid.getRFromIndex(0);
+    double dphi = (grid.getPhiFromIndex(1)-grid.getPhiFromIndex(0));
+    double dtheta = grid.getThetaFromIndex(1)-grid.getThetaFromIndex(0);
 
-    SphericalGrid k = SphericalGrid::copyGrid(grid);
-    CalculateFlux(flux, grid);
-
+    auto& fluxR = std::get<T_R>(flux);
+    auto& fluxPhi = std::get<T_PHI>(flux);
+    auto& fluxTheta = std::get<T_THETA>(flux);
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
                 Cell& c=grid.getCellRef(r,phi,theta);
-                c = c - dt * (   (fluxR.getCell(r+1,phi,theta)     - fluxR.getCell(r,phi,theta)) /1/*dr*/     +
-                        (fluxPhi.getCell(r,phi+1,theta)   - fluxPhi.getCell(r,phi,theta))/(1/*dphi * grid.getRFromIndex(r)*/)  +
-                        (fluxTheta.getCell(r,phi,theta+1) - fluxTheta.getCell(r,phi,theta))/(1/*dtheta * grid.getRFromIndex(r)*/));
+                c = c - dt * (
+                         (fluxR.getCell(r+1,phi,theta)     - fluxR.getCell(r,phi,theta))     /  dr
+                        +(fluxPhi.getCell(r,phi+1,theta)   - fluxPhi.getCell(r,phi,theta))   / (dphi * grid.getRFromIndex(r))
+                        +(fluxTheta.getCell(r,phi,theta+1) - fluxTheta.getCell(r,phi,theta)) / (dtheta * grid.getRFromIndex(r))
+                );
             }
         }
     }
 
+}
+
+
+void RKIntegrator(SphericalGrid& grid, double dt,double& t)
+{
+    t+=dt;
+
+
+
+    SphericalGrid fluxR = SphericalGrid::copyGrid(grid);
+    SphericalGrid fluxPhi = SphericalGrid::copyGrid(grid);
+    SphericalGrid fluxTheta = SphericalGrid::copyGrid(grid);
+    std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> flux(fluxR,fluxPhi,fluxTheta);
+
+
+    SphericalGrid DR = SphericalGrid::copyGrid(grid);
+    SphericalGrid DPhi = SphericalGrid::copyGrid(grid);
+    SphericalGrid DTheta = SphericalGrid::copyGrid(grid);
+    std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> grad(DR,DPhi,DTheta);
+
+    grid.UpdatePrim();
+    CalculateGradients(grad,grid);
+    PredictorStep(grad,grid,dt);
+    grid.UpdateCons();
+    CalculateFlux(flux, grid, grad);
+    ApplyFluxes(flux,grid,dt);
 
 }

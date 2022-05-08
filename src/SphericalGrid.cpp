@@ -26,7 +26,6 @@ SphericalGrid::SphericalGrid(unsigned int sizeR,unsigned int sizePhi,unsigned in
                 double _phi = ((double)phi+0.5)/sizePhi*2*M_PI;
                 double _theta = M_PI_2-maxPolarAngle+((double)theta+0.5)/sizePhi*2*maxPolarAngle;
                 double vol = _r*_r*std::sin(_theta)*dr*dphi*dtheta;
-                vol = 1;
                 mesh[phi + r*sizePhi + theta*sizePhi*sizeR] = Cell(vol,_r,_phi,_theta);
             }
         }

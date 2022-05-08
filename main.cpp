@@ -94,7 +94,7 @@ int main()
 
         window.clear(sf::Color::Black);
         if (!paused) {
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 10; i++)
             {
                 RKIntegrator(grid, DT,time);
                 ApplyBoundaryConditions(grid,time,densities,vels);
