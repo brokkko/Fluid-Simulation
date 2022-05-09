@@ -101,7 +101,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
 
 
     std::stringstream ss;
-    ss<<grid.getCell(mpos.x,mpos.y,0).p_Vph;
+    ss<<grid.getCell(mpos.x,mpos.y,0).p_rho;
     t.setString(ss.str());
     t.setPosition(mPos.x,mPos.y+20);
     window.draw(t);

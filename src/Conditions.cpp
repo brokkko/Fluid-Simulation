@@ -17,12 +17,12 @@ void InitialConditions(SphericalGrid& grid) {
             double T =10;
             // for (int y = 45; y < 55; y++){
             //        for (int x = 20; x < 40; x++){
-            if(x>50 && x< 60 && y>45 && y<55)
+            if(x>30 && x< 60 && y>45 && y<55)
             {
-                rho=small_rho*20;
-                vx=0;
+                rho=small_rho*200;
+                //vx=1000000;
                 T=100000;
-                vy=50000;
+                vy=1000000;
             }
 
 

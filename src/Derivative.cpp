@@ -6,15 +6,17 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
     double r =U.r;
     double phi = U.phi;
     double theta = U.theta;
+
+
     double drhodt = 1. / (r * r) * (2 * r * U.p_rho * U.p_Vr + r * r * (Dr.p_rho * U.p_Vr + U.p_rho * Dr.p_Vr))
                     + 1.0 / (r * std::sin(theta)) * (std::cos(theta) * U.p_rho * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vth + U.p_rho * Dtheta.p_Vth))
-                    + 1.0 / (/*r **/ std::sin(theta)) * (U.p_rho * Dphi.p_Vph + U.p_Vph * Dphi.p_rho);
+                    + 1.0 / (r * std::sin(theta)) * (U.p_rho * Dphi.p_Vph + U.p_Vph * Dphi.p_rho);
 
 
-//    double dp_Vrdt = (Dr.p_rho*U.p_Vr*U.p_Vr + 2 * U.p_rho * Dr.p_Vr * U.p_Vr
-//                    +Dphi.p_rho*U.p_Vr*U.p_Vph + U.p_rho * Dphi.p_Vr * U.p_Vph + U.p_rho * U.p_Vr * Dphi.p_Vph
-//                    +Dtheta.p_rho*U.p_Vr*U.p_Vth + U.p_rho * Dtheta.p_Vr * U.p_Vth + U.p_rho * U.p_Vr * Dtheta.p_Vth
-//                    +Dr.p_P);
+   /* double dp_Vrdt = (Dr.p_rho*U.p_Vr*U.p_Vr + 2 * U.p_rho * Dr.p_Vr * U.p_Vr
+                    +Dphi.p_rho*U.p_Vr*U.p_Vph + U.p_rho * Dphi.p_Vr * U.p_Vph + U.p_rho * U.p_Vr * Dphi.p_Vph
+                    +Dtheta.p_rho*U.p_Vr*U.p_Vth + U.p_rho * Dtheta.p_Vr * U.p_Vth + U.p_rho * U.p_Vr * Dtheta.p_Vth
+                    +Dr.p_P);*/
 
 
 
@@ -37,10 +39,10 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
                        + U.p_Bph / (r * mu) * Dphi.p_Bph
                        + (U.p_Br * U.p_Bph + U.p_Bth * U.p_Bph * ctg(theta)) / (mu * r))
                      + 1.0/(r*r) * (2 * r * U.p_rho * U.p_Vph * U.p_Vr + r * r * (Dr.p_rho * U.p_Vph * U.p_Vr + U.p_rho * (Dr.p_Vph * U.p_Vr + U.p_Vph * Dr.p_Vr)))
-                     + 1.0/(/*r**/std::sin(theta))*(std::cos(theta) * U.p_rho * U.p_Vph * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vph * U.p_Vth + U.p_rho * (Dtheta.p_Vph * U.p_Vth + U.p_Vph * Dtheta.p_Vth)))
-                     + 1.0/(/*r**/std::sin(theta)) * (Dphi.p_rho * U.p_Vph * U.p_Vph + 2 * U.p_rho * (Dphi.p_Vph * U.p_Vph)));
+                     + 1.0/(r*std::sin(theta))*(std::cos(theta) * U.p_rho * U.p_Vph * U.p_Vth + std::sin(theta) * (Dtheta.p_rho * U.p_Vph * U.p_Vth + U.p_rho * (Dtheta.p_Vph * U.p_Vth + U.p_Vph * Dtheta.p_Vth)))
+                     + 1.0/(r*std::sin(theta)) * (Dphi.p_rho * U.p_Vph * U.p_Vph + 2 * U.p_rho * (Dphi.p_Vph * U.p_Vph)));
 
-    /*double p_Mph = U.p_rho*U.p_Vph;
+    double p_Mph = U.p_rho*U.p_Vph;
 //    double p_Mth = U.p_rho*U.p_Vth;
 //    double p_Mr = U.p_rho*U.p_Vr;
 
@@ -51,7 +53,7 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
     Mphidt = 1.0/(r*r*r) * (3*r*r*(p_Mph*U.p_Vr - U.p_Bph*U.p_Br) + r*r*r*((p_Mph_dr*U.p_Vr + p_Mph*Dr.p_Vr) - (Dr.p_Bph*U.p_Br + U.p_Bph*Dr.p_Br)))
              + 1.0/(r * std::sin(theta) * std::sin(theta)) * (2*std::sin(theta)*std::cos(theta)*(p_Mph*U.p_Vth - U.p_Bph*U.p_Bth) + std::sin(theta)*std::sin(theta)*((p_Mph_dth*U.p_Vth + p_Mph*Dtheta.p_Vth) - (Dtheta.p_Bph*U.p_Bth + U.p_Bph*Dtheta.p_Bth)))
              + 1.0/(r * std::sin(theta)) * (std::cos(theta)*(p_Mph*U.p_Vph - U.p_Bph*U.p_Bph) + std::sin(theta)*((p_Mph_dph*U.p_Vph + p_Mph*Dphi.p_Vph) - (Dphi.p_Bph*U.p_Bph + U.p_Bph*Dphi.p_Bph)))
-             + 1.0/(r * std::sin(theta)) * (Dphi.p_P);*/
+             + 1.0/(r * std::sin(theta)) * (Dphi.p_P);
 
 
 
@@ -76,7 +78,7 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
                                  + 1.0/(r*std::sin(theta)) * Dphi.p_Vph)
                    + U.p_Vr /(r * r) * (2 * r * U.p_P + r*r*(Dr.p_P))
                    + U.p_Vth/(r * std::sin(theta)) * (std::cos(theta) * U.p_P + std::sin(theta) *(Dtheta.p_P))
-                   + U.p_Vph /*/ r*/ * (Dphi.p_P);
+                   + U.p_Vph / r * (Dphi.p_P);
 
     double dVphiDt = ( U.p_Vr * Dr.p_Vph + U.p_Vph * Dphi.p_Vph + (1/U.p_rho) * Dphi.p_P);
 
