@@ -16,7 +16,6 @@
 #define SIZE_TH 1
 #define MIN_RADIUS 1.497131e10
 #define MAX_RADIUS 2.28e11
-#define COLOR_SCHEME 1
 #define COLOR_SCHEME 0
 #define mu 1.2566e-8
 #define m_div_k 8249.805773
