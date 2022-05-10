@@ -13,6 +13,30 @@ Cell S(int x,int y,Cell val)
     else return {0,0,0,0};
 }
 
+double CalculateDT(SphericalGrid& grid){
+    double minDT = DT;
+
+    double dr =     grid.getRFromIndex(1)       - grid.getRFromIndex(0);
+    double dphi =  (grid.getPhiFromIndex(1)     - grid.getPhiFromIndex(0));
+    double dtheta = grid.getThetaFromIndex(1) - grid.getThetaFromIndex(0);
+
+    for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
+        for (int r = 0; r < grid.getSizeR(); r++) {
+            for (int phi = 0; phi < grid.getSizePhi(); phi++) {
+
+                auto curr =   grid.getCell(r,phi,theta);
+
+                double V_r = curr.p_Vr*curr.p_Vr + curr.p_Vth*curr.p_Vth + curr.p_Vph*curr.p_Vph;
+                double minDr = CFL *  (dr / (std::sqrt( gamma*curr.p_P/curr.p_rho) + std::abs(curr.p_Vr)));
+                double minDph = CFL *  (dphi*curr.r / (std::sqrt( gamma*curr.p_P/curr.p_rho) + std::abs(curr.p_Vph)));
+                double minDth = CFL *  (dtheta*curr.r / (std::sqrt( gamma*curr.p_P/curr.p_rho) + std::abs(curr.p_Vth)));
+                minDT = std::min(minDr, std::min(minDph, std::min(minDth, minDT)));
+            }
+        }
+    }
+    return minDT;
+}
+
 void CalculateGradients(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> grad,SphericalGrid& grid)
 {
     double dr =     grid.getRFromIndex(1)       - grid.getRFromIndex(0);
@@ -99,9 +123,11 @@ void ApplyFluxes(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> flux,S
 }
 
 
-void RKIntegrator(SphericalGrid& grid, double dt,double& t)
+void RKIntegrator(SphericalGrid& grid, double &dt,double& t)
 {
-    t+=dt;
+    dt = CalculateDT(grid);
+    t+= dt;
+    //std::cout << CalculateDT(grid) << "                   " << dt << std::endl;
 
     SphericalGrid k = SphericalGrid::copyGrid(grid);
 
