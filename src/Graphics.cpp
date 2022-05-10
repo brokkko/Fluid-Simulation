@@ -51,7 +51,7 @@ sf::Vector3f toSpherical(sf::Vector3f vec)
 
 
 
-void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode) {
+void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode, double dt) {
     sf::RectangleShape r;
     sf::Vertex varr[grid.getSizeR()];
     sf::Vertex varry[grid.getSizePhi()];
@@ -123,7 +123,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     }
 
     std::string names[] ={"RHO","Vx","Vy","Vz","p_Br","p_Bph","p_Bth","c_E","P"};
-    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum <<" mpos: " << mpos.x <<" "<<mpos.y;
+    ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum <<" mpos: " << mpos.x <<" "<<mpos.y << "  dt: " << dt;
     t.setString(ss2.str());
     t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));
     window.draw(t);

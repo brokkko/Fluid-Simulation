@@ -14,6 +14,6 @@
 
 
 sf::Color toColor(double val,double min,double max);
-void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode);
+void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upperbound,int mode, double dt);
 //void show(Grid& grid, sf::RenderWindow& window,sf::Text& t, double upperbound,int mode);
 #endif //FLUID_SIMULATION_GRAPHICS_H

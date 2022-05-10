@@ -51,7 +51,7 @@ int main()
     window.setActive(true);
     window.setFramerateLimit(60);
     //Grid grid(70,70);
-    SphericalGrid grid(70,70,1,1.497131e10,2.28e11,M_PI_2);
+    SphericalGrid grid(SIZE_R,SIZE_PH,SIZE_TH,MIN_RADIUS,MAX_RADIUS,M_PI_2);
     InitialConditions(grid);
 //grid.Fill(10);
     sf::View w;
@@ -91,12 +91,12 @@ int main()
             }
         }
 
-
+        double dt = DT;
         window.clear(sf::Color::Black);
         if (!paused) {
             for (int i = 0; i < 1; i++)
             {
-                RKIntegrator(grid, DT,time);
+                RKIntegrator(grid, dt,time);
                 ApplyBoundaryConditions(grid,time,densities,vels);
 
             }
@@ -105,7 +105,7 @@ int main()
         double sum = 0;
         double vel = 0;
 
-        show(grid, window,t,upperbound[currentmode],currentmode);
+        show(grid, window,t,upperbound[currentmode],currentmode, dt);
 
         window.display();
         //paused=true;

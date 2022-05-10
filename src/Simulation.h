@@ -15,5 +15,5 @@ Cell nonZeroDenom(Cell denom);
 
 Cell S(int x,int y,Cell val);
 
-void RKIntegrator(SphericalGrid& grid, double dt,double& t);
+void RKIntegrator(SphericalGrid& grid, double &dt,double& t);
 #endif //FLUID_SIMULATION_SIMULATION_H

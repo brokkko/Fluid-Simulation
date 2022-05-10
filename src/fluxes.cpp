@@ -73,6 +73,7 @@ Cell FluxTheta(Cell U)
 
 void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out, SphericalGrid& in, std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> grad)
 {
+    //std::cout << "---------------------------------------------------" << std::endl;
     for(int theta = 0; theta < in.getSizeTheta(); theta++) {
         for (int r = 0; r < in.getSizeR(); r++) {
             for (int phi = 0; phi < in.getSizePhi(); phi++) // 2->n ??
@@ -102,17 +103,32 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 uL_th.UpdateCons();
                 uR_th.UpdateCons();
 
+                double C_uL_r = std::sqrt(gamma*uL_r.p_P/uL_r.p_rho) + std::abs(uL_r.p_Vr);
+                double C_uR_r = std::sqrt(gamma*uR_r.p_P/uR_r.p_rho) + std::abs(uR_r.p_Vr);
+                double C_r = std::max(C_uL_r, C_uR_r);
 
+                double C_uL_ph = std::sqrt(gamma*uL_ph.p_P/uL_ph.p_rho) + std::abs(uL_ph.p_Vph);
+                double C_uR_ph = std::sqrt(gamma*uR_ph.p_P/uR_ph.p_rho) + std::abs(uR_ph.p_Vph);
+                double C_ph = std::max(C_uL_ph, C_uR_ph);
 
-                maxSpeed(0.5 * (uL_r + uR_r));
+                double C_uL_th = std::sqrt(gamma*uL_th.p_P/uL_th.p_rho) + std::abs(uL_th.p_Vth);
+                double C_uR_th = std::sqrt(gamma*uR_th.p_P/uR_th.p_rho) + std::abs(uR_th.p_Vth);
+                double C_th = std::max(C_uL_th, C_uR_th);
+
+//                if(phi == 50){
+//                    std::cout << C_r << "             " << C_ph << "             " << C_th << std::endl;
+//                }
+
+               // maxSpeed(c);
 #if defined(USE_CONST_A)
                 double aR = A_SPEED;
                 double aphi = A_SPEED;
                 double atheta = A_SPEED;
 #else
-                double aR = maxSpeed(0.5 * (uL_R + uR_R));
-                double aphi = maxSpeed(0.5 * (uL_phi + uR_phi));
-                double atheta = maxSpeed(0.5 * (uL_theta + uR_theta));
+                double aR = C_r;
+                double aphi = C_ph;
+                double atheta = C_th;
+
 #endif
 
                 //std::cout << a << std::endl;
