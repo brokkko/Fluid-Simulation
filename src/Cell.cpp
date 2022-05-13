@@ -2,125 +2,267 @@
 #include "Constants.h"
 
 Cell& Cell::zeros() {
+    p.zeros();
+    c.zeros();
+    return *this;
+}
+
+PrimitiveVector& PrimitiveVector::zeros() {
     auto p = reinterpret_cast<double*>(this);
-    for (int i=0;i<16;i++)
+    for (int i=0;i<8;i++)
+        p[i] = 0;
+    return *this;
+}
+ConservativeVector& ConservativeVector::zeros() {
+    auto p = reinterpret_cast<double*>(this);
+    for (int i=0;i<8;i++)
         p[i] = 0;
     return *this;
 }
 
+PrimitiveVector PrimitiveVector::rotate(double phi,double theta)
+{
+    PrimitiveVector res = *this;
+    res.Vr = Vr*std::cos(phi) - Vph*std::sin(phi);
+    res.Vph =Vr*std::sin(phi) + Vph*std::cos(phi);
+
+    res.Br = Br*std::cos(phi) - Bth*std::sin(phi);
+    res.Bth =Br*std::sin(phi) + Bth*std::cos(phi);
+
+    return res;
+}
+ConservativeVector ConservativeVector::rotate(double phi,double theta)
+{
+    ConservativeVector res = *this;
+    res.Mr = Mr*std::cos(phi) - Mph*std::sin(phi);
+    res.Mph =Mr*std::sin(phi) + Mph*std::cos(phi);
+
+    res.Br = Br*std::cos(phi) - Bth*std::sin(phi);
+    res.Bth =Br*std::sin(phi) + Bth*std::cos(phi);
+    return res;
+}
+
+
 void Cell::UpdatePrim()
 {
-    if(c_rho<0)
+    if(c.m<0)
     {
 #if defined(PRINT_NEG)
         std::cout<<"neg Rho\n";
 #endif
-        c_rho=small_rho*volume;
+        c.m=small_rho*volume;
     }
-    p_rho = c_rho/volume;
+    p.rho = c.m/volume;
 
-    p_Vr=c_Mr/p_rho/volume;
-    p_Vph=c_Mph/p_rho/volume;
-    p_Vth=c_Mth/p_rho/volume;
-    p_Br=c_Br/volume;
-    p_Bph=c_Bph/volume;
-    p_Bth=c_Bth/volume;
-    double V2 = p_Vr * p_Vr + p_Vph * p_Vph + p_Vth * p_Vth;
-    double M2 = c_Mr * c_Mr + c_Mph * c_Mph + c_Mth * c_Mth;
-    double B2 = p_Br * p_Br + p_Bph * p_Bph + p_Bth * p_Bth;
-    double cB2 = c_Br * c_Br + c_Bph * c_Bph + c_Bth * c_Bth;
+    p.Vr=c.Mr/p.rho/volume;
+    p.Vph=c.Mph/p.rho/volume;
+    p.Vth=c.Mth/p.rho/volume;
+    p.Br=c.Br/volume;
+    p.Bph=c.Bph/volume;
+    p.Bth=c.Bth/volume;
+    double V2 = p.Vr * p.Vr + p.Vph * p.Vph + p.Vth * p.Vth;
+    double M2 = c.Mr * c.Mr + c.Mph * c.Mph + c.Mth * c.Mth;
+    double B2 = p.Br * p.Br + p.Bph * p.Bph + p.Bth * p.Bth;
+    double cB2 = c.Br * c.Br + c.Bph * c.Bph + c.Bth * c.Bth;
 
-    if(c_E<0) {
+    if(c.E<0) {
 #if defined(PRINT_NEG)
         std::cout<<"neg E\n";
 #endif
-        c_E = small_P/(gamma-1) + 0.5*(M2/c_rho+cB2);
+        c.E = small_P/(gamma-1) + 0.5*(M2/c.m+cB2);
     }
-    p_P= (gamma - 1) * (c_E/volume - 0.5 * p_rho * V2 - 0.5 / mu * B2);// + 0.5 / mu * B2;
-    if(p_P<0) {
+    p.P= (gamma - 1) * (c.E/volume - 0.5 * p.rho * V2 - 0.5 * B2);// + 0.5 / mu * B2;
+    if(p.P<0) {
 #if defined(PRINT_NEG)
         std::cout << "neg P\n";
 #endif
-        p_P = small_P;
-        c_E = (p_P / (gamma - 1) + 0.5 * p_rho * V2 + 0.5 * B2/mu) * volume;
+        p.P = small_P;
+        c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2) * volume;
     }
 }
 void Cell::UpdateCons()
 {
-    c_rho = p_rho * volume;
-    c_Mr = p_rho * p_Vr * volume;
-    c_Mph = p_rho * p_Vph * volume;
-    c_Mth = p_rho * p_Vth * volume;
-    c_Br = p_Br * volume;
-    c_Bph = p_Bph * volume;
-    c_Bth = p_Bth * volume;
-    double V2 = p_Vr * p_Vr + p_Vph * p_Vph + p_Vth * p_Vth;
-    double M2 = c_Mr * c_Mr + c_Mph * c_Mph + c_Mth * c_Mth;
-    double B2 = p_Br * p_Br + p_Bph * p_Bph + p_Bth * p_Bth;
-    double cB2 = c_Br * c_Br + c_Bph * c_Bph + c_Bth * c_Bth;
-    double p = p_P - 0.5 * B2 / mu;
-    c_E = (p_P / (gamma - 1) + 0.5 * p_rho * V2 + 0.5 * B2/mu) * volume;
+    c.m = p.rho * volume;
+    c.Mr = p.rho * p.Vr * volume;
+    c.Mph = p.rho * p.Vph * volume;
+    c.Mth = p.rho * p.Vth * volume;
+    c.Br = p.Br * volume;
+    c.Bph = p.Bph * volume;
+    c.Bth = p.Bth * volume;
+    double V2 = p.Vr * p.Vr + p.Vph * p.Vph + p.Vth * p.Vth;
+    double M2 = c.Mr * c.Mr + c.Mph * c.Mph + c.Mth * c.Mth;
+    double B2 = p.Br * p.Br + p.Bph * p.Bph + p.Bth * p.Bth;
+    double cB2 = c.Br * c.Br + c.Bph * c.Bph + c.Bth * c.Bth;
+    //double prs = p.P - 0.5 * B2 / mu;
+    c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2) * volume;
 
 }
 
 
 Cell Cell::operator+(const Cell right) const {
-    auto right_p= reinterpret_cast<const double*>(&right);
     Cell res = *this;
+    res.p = res.p + right.p;
+    res.c = res.c + right.c;
+    return res;
+}
+
+template<class T>
+T add(T l,T r)
+{
+    auto right_p= reinterpret_cast<const double*>(&r);
+    T res = l;
     auto res_p = reinterpret_cast<double*>(&res);
-    for (int i=0;i<16;i++)
+    for (int i=0;i<8;i++)
         res_p[i] += right_p[i];
     return res;
 }
 
-Cell Cell::operator-(const Cell right) const {
-    auto right_p= reinterpret_cast<const double*>(&right);
-    Cell res = *this;
+template<class T>
+T sub(T l,T r)
+{
+    auto right_p= reinterpret_cast<const double*>(&r);
+    T res = l;
     auto res_p = reinterpret_cast<double*>(&res);
-    for (int i=0;i<16;i++)
+    for (int i=0;i<8;i++)
         res_p[i] -= right_p[i];
     return res;
 }
-
-Cell Cell::operator*(const Cell right) const {
-    auto right_p= reinterpret_cast<const double*>(&right);
-    Cell res = *this;
+template<class T>
+T mul(T l,T r)
+{
+    auto right_p= reinterpret_cast<const double*>(&r);
+    T res = l;
     auto res_p = reinterpret_cast<double*>(&res);
-    for (int i=0;i<16;i++)
+    for (int i=0;i<8;i++)
         res_p[i] *= right_p[i];
     return res;
 }
 
-Cell Cell::operator/(const Cell right) const {
-    auto right_p= reinterpret_cast<const double*>(&right);
-    Cell res = *this;
+template<class T>
+T div(T l,T r)
+{
+    auto right_p= reinterpret_cast<const double*>(&r);
+    T res = l;
     auto res_p = reinterpret_cast<double*>(&res);
-    for (int i=0;i<16;i++)
+    for (int i=0;i<8;i++)
         res_p[i] /= right_p[i];
+    return res;
+}
+
+template<class T>
+T div(T l,double r)
+{
+    T res = l;
+    auto res_p = reinterpret_cast<double*>(&res);
+    for (int i=0;i<8;i++)
+        res_p[i] /= r;
+    return res;
+}
+
+template<class T>
+T mul(T l,double r)
+{
+    T res = l;
+    auto res_p = reinterpret_cast<double*>(&res);
+    for (int i=0;i<8;i++)
+        res_p[i] *= r;
+    return res;
+}
+
+PrimitiveVector PrimitiveVector::operator+(const PrimitiveVector right) const
+{
+    return add(*this,right);
+}
+ConservativeVector ConservativeVector::operator+(const ConservativeVector right) const
+{
+    return add(*this,right);
+}
+PrimitiveVector PrimitiveVector::operator-(const PrimitiveVector right) const
+{
+    return sub(*this,right);
+}
+ConservativeVector ConservativeVector::operator-(const ConservativeVector right) const
+{
+    return sub(*this,right);
+}
+PrimitiveVector PrimitiveVector::operator*(const PrimitiveVector right) const
+{
+    return mul(*this,right);
+}
+ConservativeVector ConservativeVector::operator*(const ConservativeVector right) const
+{
+    return mul(*this,right);
+}
+PrimitiveVector PrimitiveVector::operator/(const PrimitiveVector right) const
+{
+    return div(*this,right);
+}
+ConservativeVector ConservativeVector::operator/(const ConservativeVector right) const
+{
+    return div(*this,right);
+}
+PrimitiveVector PrimitiveVector::operator*(const double right) const
+{
+    return mul(*this,right);
+}
+ConservativeVector ConservativeVector::operator*(const double right) const
+{
+    return mul(*this,right);
+}
+PrimitiveVector PrimitiveVector::operator/(const double right) const
+{
+    return div(*this,right);
+}
+ConservativeVector ConservativeVector::operator/(const double right) const
+{
+    return div(*this,right);
+}
+PrimitiveVector operator*(const double l, const PrimitiveVector r) {
+    return mul(r,l);
+}
+ConservativeVector operator*(const double l, const ConservativeVector r) {
+    return mul(r,l);
+}
+
+
+Cell Cell::operator-(const Cell right) const {
+    Cell res = *this;
+    res.p = res.p - right.p;
+    res.c = res.c - right.c;
+    return res;
+}
+
+Cell Cell::operator*(const Cell right) const {
+    Cell res = *this;
+    res.p = res.p * right.p;
+    res.c = res.c * right.c;
+    return res;
+}
+
+Cell Cell::operator/(const Cell right) const {
+    Cell res = *this;
+    res.p = res.p / right.p;
+    res.c = res.c / right.c;
     return res;
 }
 
 Cell Cell::operator*(const double right) const {
     Cell res = *this;
-    auto res_p = reinterpret_cast<double*>(&res);
-    for (int i=0;i<16;i++)
-        res_p[i] *= right;
+    res.p = res.p * right;
+    res.c = res.c * right;
     return res;
 }
 
 Cell Cell::operator/(const double right) const {
     Cell res = *this;
-    auto res_p = reinterpret_cast<double*>(&res);
-    for (int i=0;i<16;i++)
-        res_p[i] /= right;
+    res.p = res.p / right;
+    res.c = res.c / right;
     return res;
 }
 
 Cell operator*(const double l, const Cell r) {
-    auto right_p= reinterpret_cast<const double*>(&r);
     Cell res = r;
-    auto res_p = reinterpret_cast<double*>(&res);
-    for (int i=0;i<16;i++)
-        res_p[i] = l * right_p[i];
+    res.p = l * r.p;
+    res.c = l * r.c;
     return res;
 }

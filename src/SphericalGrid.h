@@ -31,6 +31,8 @@ public:
     static SphericalGrid copyGrid(SphericalGrid& grid);
     void Fill(double v);
     ~SphericalGrid();
+    double getMaxRadius() const {return maxRadius;}
+    double getMinRadius() const {return minRadius;}
 };
 
 

@@ -15,8 +15,8 @@ double* getDensity(){
     reader.readData("D", &data, &dataSize);
     auto *density = new double [180];
     int index = 0;
-    for(int i=180*30; i<180*31; i++){
-        density[index++] = data[i];
+    for(int i=0; i<180; i++){
+        density[index++] = data[30+60*i];
     }
     free(data);
     return density;
@@ -28,8 +28,8 @@ double* getVelocity(){
     reader.readData("V1", &data, &dataSize);
     auto *velocity = new double [180];
     int index = 0;
-    for(int i=180*30; i<180*31; i++){
-        velocity[index++] = data[i];
+    for(int i=0; i<180; i++){
+        velocity[index++] = data[30+60*i];
     }
     free(data);
     return velocity;
@@ -51,7 +51,8 @@ int main()
     window.setActive(true);
     window.setFramerateLimit(60);
     //Grid grid(70,70);
-    SphericalGrid grid(SIZE_R,SIZE_PH,SIZE_TH,MIN_RADIUS,MAX_RADIUS,M_PI_2);
+    SphericalGrid grid(SIZE_R,SIZE_PH,SIZE_TH,MIN_RADIUS,MAX_RADIUS,M_PI/3);
+    Simulation simulation(grid);
     InitialConditions(grid);
 //grid.Fill(10);
     sf::View w;
@@ -96,7 +97,7 @@ int main()
         if (!paused) {
             for (int i = 0; i < 1; i++)
             {
-                RKIntegrator(grid, dt,time);
+                simulation.RKIntegrator(dt,time);
                 ApplyBoundaryConditions(grid,time,densities,vels);
 
             }

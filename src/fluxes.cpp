@@ -1,54 +1,38 @@
 #include "fluxes.h"
 #include "Constants.h"
 
-double maxSpeed(Cell U){
-    double p = gamma * (U.c_E/U.volume - 0.5 * U.p_rho * (U.p_Vr * U.p_Vr + U.p_Vth * U.p_Vth + U.p_Vph * U.p_Vph)
-                        - 0.5/mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth));
-    double P = p + 0.5 / mu * (U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth);
-
-    double B_2 = U.p_Br * U.p_Br + U.p_Bph * U.p_Bph + U.p_Bth * U.p_Bth;
-    double B = std::sqrt(B_2);
-
-    double cmax =
-            std::sqrt(U.p_Vr * U.p_Vr + U.p_Vph * U.p_Vph + U.p_Vth * U.p_Vth)
-            + 0.5*((gamma * U.p_P + B_2)/U.p_rho
-                   + std::sqrt(((gamma + B)/U.p_rho) * ((gamma + B) / U.p_rho) - 4 * (gamma * U.p_Br * U.p_Br) / (U.p_rho * U.p_rho)));
-
-    return cmax;
-}
-
 
 Cell FluxR(Cell U)
 {
-    double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
+    double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
-    res.c_rho =  U.p_Vr * U.p_rho * U.volume;
-    res.c_Mr  = (U.p_Vr * U.p_Vr * U.p_rho  - U.p_Br * U.p_Br + U.p_P) * U.volume;
-    res.c_Mph = (U.p_Vph * U.p_Vr * U.p_rho - U.p_Br * U.p_Bph) * U.volume;
-    res.c_Mth = (U.p_Vth * U.p_Vr * U.p_rho - U.p_Br * U.p_Bth) * U.volume;
+    res.c.m =  U.p.Vr * U.p.rho;
+    res.c.Mr  = (U.p.Vr * U.p.Vr * U.p.rho  - U.p.Br * U.p.Br /*+ U.p.P*/);
+    res.c.Mph = (U.p.Vph * U.p.Vr * U.p.rho - U.p.Br * U.p.Bph);
+    res.c.Mth = (U.p.Vth * U.p.Vr * U.p.rho - U.p.Br * U.p.Bth);
 
-    res.c_Br = 0;
-    res.c_Bph = 0;
-    res.c_Bth = 0;
-    res.c_E = ((U.c_E/U.volume + U.p_P)*U.p_Vr - U.p_Br*vB)*U.volume;
+    res.c.Br = 0;
+    res.c.Bph = 0;
+    res.c.Bth = 0;
+    res.c.E = ((U.c.E/U.volume + U.p.P)*U.p.Vr - U.p.Br*vB);
     return res;
 }
 
 Cell FluxPhi(Cell U)
 {
-    double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
+    double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
-    res.c_rho = U.p_Vph * U.p_rho * U.volume;
-    res.c_Mr  = (U.p_Vr  * U.p_rho * U.p_Vph - U.p_Bph * U.p_Br) * U.volume ;
-    res.c_Mph = (U.p_Vph * U.p_rho * U.p_Vph - U.p_Bph * U.p_Bph + U.p_P) * U.volume;
-    res.c_Mth = (U.p_Vth * U.p_rho * U.p_Vph - U.p_Bph * U.p_Bth) * U.volume;
+    res.c.m = U.p.Vph * U.p.rho;
+    res.c.Mr  = (U.p.Vr  * U.p.rho * U.p.Vph - U.p.Bph * U.p.Br);
+    res.c.Mph = (U.p.Vph * U.p.rho * U.p.Vph - U.p.Bph * U.p.Bph /*+ U.p.P*/);
+    res.c.Mth = (U.p.Vth * U.p.rho * U.p.Vph - U.p.Bph * U.p.Bth);
 
 
-    res.c_Br = 0;
-    res.c_Bph = 0;
-    res.c_Bth = 0;
-    res.c_E = ((U.c_E/U.volume + U.p_P)*U.p_Vph - U.p_Bph*vB) * U.volume;
-    //res.c_E = (U.c_E + U.p_P)*U.p_Vph - U.p_Bph*vB;
+    res.c.Br = 0;
+    res.c.Bph = 0;
+    res.c.Bth = 0;
+    res.c.E = ((U.c.E/U.volume + U.p.P)*U.p.Vph - U.p.Bph*vB);
+    //res.c.E = (U.c.E + U.p.P)*U.p.Vph - U.p.Bph*vB;
     return res;
 }
 
@@ -56,18 +40,36 @@ Cell FluxPhi(Cell U)
 //TODO: Multiply by volume
 Cell FluxTheta(Cell U)
 {
-    double vB = U.p_Vr * U.p_Br + U.p_Vph * U.p_Bph + U.p_Vth * U.p_Bth;
+    double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
-    res.c_rho = U.c_Mth;
-    res.c_Mr  = U.c_Mr  * U.p_Vth - U.p_Bth * U.p_Br ;
-    res.c_Mph = U.c_Mph * U.p_Vth - U.p_Bth * U.p_Bph;
-    res.c_Mth = U.c_Mth * U.p_Vth - U.p_Bth * U.p_Bth + U.p_P;
+    res.c.m = U.c.Mth;
+    res.c.Mr  = U.c.Mr  * U.p.Vth - U.p.Bth * U.p.Br ;
+    res.c.Mph = U.c.Mph * U.p.Vth - U.p.Bth * U.p.Bph;
+    res.c.Mth = U.c.Mth * U.p.Vth - U.p.Bth * U.p.Bth + U.p.P;
 
-    res.c_Br = 0;
-    res.c_Bph = 0;
-    res.c_Bth = 0;
-    res.c_E = (U.c_E + U.p_P)*U.p_Vth - U.p_Bth*vB;
+    res.c.Br = 0;
+    res.c.Bph = 0;
+    res.c.Bth = 0;
+    res.c.E = (U.c.E + U.p.P)*U.p.Vth - U.p.Bth*vB;
     return res;
+}
+
+Cell DiffusiveTerm(Cell R, Cell L)
+{
+    Cell res  = R;
+
+    res.c.m = (R.p.rho - L.p.rho);
+    res.c.Mr  = (R.p.rho * R.p.Vr - L.p.rho * L.p.Vr);
+    res.c.Mph = (R.p.rho * R.p.Vph - L.p.rho * L.p.Vph);
+    res.c.Mth = (R.p.rho * R.p.Vth - L.p.rho * L.p.Vth);
+
+    res.c.Br = (R.p.Br - L.p.Br);
+    res.c.Bph = (R.p.Bph - L.p.Bph);
+    res.c.Bth = (R.p.Bth - L.p.Bth);
+    res.c.E = (R.c.E/R.volume - L.c.E/L.volume);
+
+    return res;
+
 }
 
 
@@ -96,6 +98,11 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 auto uL_th = in.getCell(r,phi,theta-1) + 0.5 * Dtheta_1;
                 auto uR_th = in.getCell(r,phi,theta)   - 0.5 * Dtheta;
 
+                double dphi=M_PI/in.getSizePhi();
+
+                uL_ph.p = uL_ph.p.rotate(dphi,0);
+                uR_ph.p = uR_ph.p.rotate(-dphi,0);
+
                 uL_r.UpdateCons();
                 uR_r.UpdateCons();
                 uL_ph.UpdateCons();
@@ -103,16 +110,16 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 uL_th.UpdateCons();
                 uR_th.UpdateCons();
 
-                double C_uL_r = std::sqrt(gamma*uL_r.p_P/uL_r.p_rho) + std::abs(uL_r.p_Vr);
-                double C_uR_r = std::sqrt(gamma*uR_r.p_P/uR_r.p_rho) + std::abs(uR_r.p_Vr);
+                double C_uL_r = std::sqrt(gamma*uL_r.p.P/uL_r.p.rho) + std::abs(uL_r.p.Vr);
+                double C_uR_r = std::sqrt(gamma*uR_r.p.P/uR_r.p.rho) + std::abs(uR_r.p.Vr);
                 double C_r = std::max(C_uL_r, C_uR_r);
 
-                double C_uL_ph = std::sqrt(gamma*uL_ph.p_P/uL_ph.p_rho) + std::abs(uL_ph.p_Vph);
-                double C_uR_ph = std::sqrt(gamma*uR_ph.p_P/uR_ph.p_rho) + std::abs(uR_ph.p_Vph);
+                double C_uL_ph = std::sqrt(gamma*uL_ph.p.P/uL_ph.p.rho) + std::abs(uL_ph.p.Vph);
+                double C_uR_ph = std::sqrt(gamma*uR_ph.p.P/uR_ph.p.rho) + std::abs(uR_ph.p.Vph);
                 double C_ph = std::max(C_uL_ph, C_uR_ph);
 
-                double C_uL_th = std::sqrt(gamma*uL_th.p_P/uL_th.p_rho) + std::abs(uL_th.p_Vth);
-                double C_uR_th = std::sqrt(gamma*uR_th.p_P/uR_th.p_rho) + std::abs(uR_th.p_Vth);
+                double C_uL_th = std::sqrt(gamma*uL_th.p.P/uL_th.p.rho) + std::abs(uL_th.p.Vth);
+                double C_uR_th = std::sqrt(gamma*uR_th.p.P/uR_th.p.rho) + std::abs(uR_th.p.Vth);
                 double C_th = std::max(C_uL_th, C_uR_th);
 
 //                if(phi == 50){
@@ -134,11 +141,11 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 //std::cout << a << std::endl;
                 // F{i-0.5} = 0.5 * (F(uR{i-0.5}) + F(uL{i-0.5}) - a * (uR{i-0.5} - uL{i-0.5}))
                 std::get<T_R>(out).getCellRef(r,phi,theta) =
-                        0.5*(FluxR(uR_r)+FluxR(uL_r)) - aR * (uR_r - uL_r);
+                        0.5 * (FluxR(uR_r)+FluxR(uL_r) - aR * DiffusiveTerm(uR_r, uL_r)) * uR_r.Sr;
                 std::get<T_PHI>(out).getCellRef(r,phi,theta) =
-                        0.5*(FluxPhi(uR_ph)+FluxPhi(uL_ph)) - aphi * (uR_ph - uL_ph);
+                        0.5 * (FluxPhi(uR_ph)+FluxPhi(uL_ph) - aphi * DiffusiveTerm(uR_ph, uL_ph)) * uR_r.Sph;
                 std::get<T_THETA>(out).getCellRef(r,phi,theta) =
-                        0.5*(FluxTheta(uR_th)+FluxTheta(uL_th)) - atheta * (uR_th - uL_th);
+                        0.5 * (FluxTheta(uR_th)+FluxTheta(uL_th) - atheta * DiffusiveTerm(uR_th, uL_th)) * uR_r.Sth;
             }
 
         }

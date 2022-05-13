@@ -8,12 +8,19 @@
 #include "Conditions.h"
 #include "tvd.h"
 
-double nonZeroDouble(double val);
+class Simulation {
+    SphericalGrid &grid;
+    SphericalGrid k = SphericalGrid::copyGrid(grid);
 
-Cell nonZeroDenom(Cell denom);
+    SphericalGrid fluxR = SphericalGrid::copyGrid(grid);
+    SphericalGrid fluxPhi = SphericalGrid::copyGrid(grid);
+    SphericalGrid fluxTheta = SphericalGrid::copyGrid(grid);
 
-
-Cell S(int x,int y,Cell val);
-
-void RKIntegrator(SphericalGrid& grid, double &dt,double& t);
+    SphericalGrid DR = SphericalGrid::copyGrid(grid);
+    SphericalGrid DPhi = SphericalGrid::copyGrid(grid);
+    SphericalGrid DTheta = SphericalGrid::copyGrid(grid);
+public:
+    Simulation(SphericalGrid &grid);
+    void RKIntegrator(double &dt, double &t);
+};
 #endif //FLUID_SIMULATION_SIMULATION_H

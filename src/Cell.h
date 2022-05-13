@@ -1,43 +1,79 @@
 #ifndef FLUID_SIMULATION_CELL_H
 #define FLUID_SIMULATION_CELL_H
 #include <iostream>
+#include<cmath>
+
+struct PrimitiveVector
+{
+    double rho;
+    double Vr;
+    double Vph;
+    double Vth;
+    double Br;
+    double Bph;
+    double Bth;
+    double P;
+
+    PrimitiveVector& zeros();
+    PrimitiveVector operator+(PrimitiveVector r) const;
+    PrimitiveVector operator-(PrimitiveVector r) const;
+    PrimitiveVector operator*(PrimitiveVector r) const;
+    PrimitiveVector operator/(PrimitiveVector r) const;
+    PrimitiveVector operator*(double r) const;
+    PrimitiveVector operator/(double r) const;
+    PrimitiveVector rotate(double phi,double theta);
+    friend PrimitiveVector operator*(double l, PrimitiveVector r);
+};
+
+struct ConservativeVector
+{
+    double m;
+    double Mr;
+    double Mph;
+    double Mth;
+    double Br;
+    double Bph;
+    double Bth;
+    double E;
+
+    ConservativeVector& zeros();
+    ConservativeVector operator+(ConservativeVector r) const;
+    ConservativeVector operator-(ConservativeVector r) const;
+    ConservativeVector operator*(ConservativeVector r) const;
+    ConservativeVector operator/(ConservativeVector r) const;
+    ConservativeVector operator*(double r) const;
+    ConservativeVector operator/(double r) const;
+    ConservativeVector rotate(double phi,double theta);
+    friend ConservativeVector operator*(double l, ConservativeVector r);
+};
+
+
 
 struct Cell
 {
-    double p_rho;
-    double p_Vr;
-    double p_Vph;
-    double p_Vth;
-    double p_Br;
-    double p_Bph;
-    double p_Bth;
-    double p_P;
-
-    double c_rho;
-    double c_Mr;
-    double c_Mph;
-    double c_Mth;
-    double c_Br;
-    double c_Bph;
-    double c_Bth;
-    double c_E;
-
+    PrimitiveVector p;
+    ConservativeVector c;
 
     double volume;
     double r;
     double phi;
     double theta;
+    double Sr;
+    double Sph;
+    double Sth;
 
-
-    Cell(double volume,double r,double phi,double theta)
+    Cell(double volume,double r,double phi,double theta,double Sr,double Sph,double Sth)
     {
         this->volume=volume;
         this->r=r;
         this->phi=phi;
         this->theta=theta;
-        auto this_p = reinterpret_cast<double*>(this);
-        for(int i=0;i<16;i++)
-            this_p[i]=0.0;
+        this->Sr = Sr;
+        this->Sph = Sph;
+        this->Sth = Sth;
+
+        p.zeros();
+        c.zeros();
     }
     Cell() { };
 
