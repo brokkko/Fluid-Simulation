@@ -1,6 +1,3 @@
-//
-// Created by alex on 08.05.2022.
-//
 #include "Conditions.h"
 #include "Constants.h"
 
@@ -11,17 +8,17 @@ void InitialConditions(SphericalGrid& grid) {
             double vx=0;
             double vy=0;
             double vz=0;
-            double Bx=0.0;
-            double By=0.0;
+            double Bx=0;
+            double By=0.0000001;
             double Bz=0.0;
             double T =10;
-            // for (int y = 45; y < 55; y++){
-            //        for (int x = 20; x < 40; x++){
+            // for (int ph = 45; ph < 55; ph++){
+            //        for (int r = 20; r < 40; r++){
             if(x>10 && x< 30 && y>45 && y<55)
             {
                 rho=small_rho*20;
                 //vx=1000000;
-                T=10;
+                T=500000;
                 vy=1000000;
             }
 
@@ -31,7 +28,7 @@ void InitialConditions(SphericalGrid& grid) {
             //k=1.38044e-23
             double E = 2 * rho * m_div_k * T/(gamma-1)
                        + rho * (vx*vx + vy*vy + vz*vz)
-                       + (Bx*Bx + By*By + Bz*Bz) /(2);
+                       + (Bx*Bx + By*By + Bz*Bz);//(2);
             double p = (gamma - 1) * (E - 0.5 * rho * (vx*vx + vy*vy + vz*vz) - 0.5 * (Bx*Bx + By*By + Bz*Bz));
             Cell& c =grid.getCellRef(x,y,0);
             c.p.rho = rho;
@@ -53,7 +50,7 @@ void ApplyBoundaryConditions(SphericalGrid& grid,double t,double* dens,double* v
 {
     for (int x=0;x<grid.getSizePhi();x++) {
         double vx=0;
-       // double vx=vels[x];
+       // double vx=vels[r];
         double vy=0;
         double vz=0;
         double Bx=0.000;
@@ -61,7 +58,7 @@ void ApplyBoundaryConditions(SphericalGrid& grid,double t,double* dens,double* v
         double Bz=0.000;
         double T = 10;
         double rho=small_rho;
-        // double rho=dens[x];
+        // double rho=dens[r];
         if( x>5 && x< 15)
         {
             // T=10;

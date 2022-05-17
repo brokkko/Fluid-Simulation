@@ -4,53 +4,59 @@
 
 Cell FluxR(Cell U)
 {
+    double B2 = U.p.Br * U.p.Br + U.p.Bph * U.p.Bph + U.p.Bth * U.p.Bth;
+    double Pt = U.p.P + B2/(2*mu);
     double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
-    res.c.m =  U.p.Vr * U.p.rho;
-    res.c.Mr  = (U.p.Vr * U.p.Vr * U.p.rho  - U.p.Br * U.p.Br /*+ U.p.P*/);
-    res.c.Mph = (U.p.Vph * U.p.Vr * U.p.rho - U.p.Br * U.p.Bph);
-    res.c.Mth = (U.p.Vth * U.p.Vr * U.p.rho - U.p.Br * U.p.Bth);
+    res.c.m =    U.p.Vr * U.p.rho;
+    res.c.Mr  = (U.p.Vr * U.p.Vr  * U.p.rho - U.p.Br * U.p.Br /*+ Pt*/);
+    res.c.Mph = (U.p.Vr * U.p.Vph * U.p.rho - U.p.Br * U.p.Bph);
+    res.c.Mth = (U.p.Vr * U.p.Vth * U.p.rho - U.p.Br * U.p.Bth);
 
-    res.c.Br = 0;
-    res.c.Bph = 0;
-    res.c.Bth = 0;
+    res.c.Br = 0.0;
+    res.c.Bph = U.p.Vr*U.p.Bph - U.p.Br * U.p.Vph;
+    res.c.Bth = U.p.Vr*U.p.Bth - U.p.Br * U.p.Vth;
     res.c.E = ((U.c.E/U.volume + U.p.P)*U.p.Vr - U.p.Br*vB);
     return res;
 }
 
 Cell FluxPhi(Cell U)
 {
+    double B2 = U.p.Br * U.p.Br + U.p.Bph * U.p.Bph + U.p.Bth * U.p.Bth;
+    double Pt = U.p.P + B2/(2*mu);
     double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
     res.c.m = U.p.Vph * U.p.rho;
-    res.c.Mr  = (U.p.Vr  * U.p.rho * U.p.Vph - U.p.Bph * U.p.Br);
-    res.c.Mph = (U.p.Vph * U.p.rho * U.p.Vph - U.p.Bph * U.p.Bph /*+ U.p.P*/);
-    res.c.Mth = (U.p.Vth * U.p.rho * U.p.Vph - U.p.Bph * U.p.Bth);
+    res.c.Mr  = (U.p.Vr  * U.p.Vph * U.p.rho  - U.p.Bph * U.p.Br);
+    res.c.Mph =(U.p.Vph * U.p.Vph * U.p.rho  - U.p.Bph * U.p.Bph /*+ Pt*/);
+    res.c.Mth = (U.p.Vph * U.p.Vth * U.p.rho  - U.p.Bph * U.p.Bth);
 
-
-    res.c.Br = 0;
-    res.c.Bph = 0;
-    res.c.Bth = 0;
-    res.c.E = ((U.c.E/U.volume + U.p.P)*U.p.Vph - U.p.Bph*vB);
+    //n - ph, t - r b - th
+    res.c.Br  = U.p.Vph * U.p.Br  - U.p.Bph * U.p.Vr;
+    res.c.Bph = 0.0;
+    res.c.Bth = U.p.Vph * U.p.Bth - U.p.Bph * U.p.Vth;
+    res.c.E = ((U.c.E/U.volume + U.p.P) * U.p.Vph - U.p.Bph * vB);
     //res.c.E = (U.c.E + U.p.P)*U.p.Vph - U.p.Bph*vB;
     return res;
 }
 
 
-//TODO: Multiply by volume
 Cell FluxTheta(Cell U)
 {
+    double B2 = U.p.Br * U.p.Br + U.p.Bph * U.p.Bph + U.p.Bth * U.p.Bth;
+    double Pt = U.p.P + B2/(2*mu);
     double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
     res.c.m = U.c.Mth;
-    res.c.Mr  = U.c.Mr  * U.p.Vth - U.p.Bth * U.p.Br ;
-    res.c.Mph = U.c.Mph * U.p.Vth - U.p.Bth * U.p.Bph;
-    res.c.Mth = U.c.Mth * U.p.Vth - U.p.Bth * U.p.Bth + U.p.P;
+    res.c.Mr  = U.p.Vr  * U.p.Vth * U.p.rho - U.p.Bth * U.p.Br ;
+    res.c.Mph = U.p.Vph * U.p.Vth * U.p.rho - U.p.Bth * U.p.Bph;
+    res.c.Mth = (U.p.Vth * U.p.Vth * U.p.rho - U.p.Bth * U.p.Bth  /* + Pt*/);
 
-    res.c.Br = 0;
-    res.c.Bph = 0;
-    res.c.Bth = 0;
-    res.c.E = (U.c.E + U.p.P)*U.p.Vth - U.p.Bth*vB;
+    //n - th t - r b -ph
+    res.c.Br  = U.p.Vth * U.p.Br  - U.p.Vth * U.p.Vr;
+    res.c.Bph = U.p.Vth * U.p.Bph - U.p.Vth * U.p.Vph;
+    res.c.Bth = 0.0;
+    res.c.E = (U.c.E/U.volume + U.p.P)*U.p.Vth - U.p.Bth * vB;
     return res;
 }
 
@@ -121,10 +127,6 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 double C_uL_th = std::sqrt(gamma*uL_th.p.P/uL_th.p.rho) + std::abs(uL_th.p.Vth);
                 double C_uR_th = std::sqrt(gamma*uR_th.p.P/uR_th.p.rho) + std::abs(uR_th.p.Vth);
                 double C_th = std::max(C_uL_th, C_uR_th);
-
-//                if(phi == 50){
-//                    std::cout << C_r << "             " << C_ph << "             " << C_th << std::endl;
-//                }
 
                // maxSpeed(c);
 #if defined(USE_CONST_A)

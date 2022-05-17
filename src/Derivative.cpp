@@ -33,6 +33,10 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
 
     Vector V = V_1 - p_2/(-U.p.rho) + Phi - 1.0/(U.p.rho)*B_3;
 
+    Vector B = { (Dr.p.Vr*U.p.Br + U.p.Vr*Dr.p.Br) - (Dr.p.Br*U.p.Vr + U.p.Br*Dr.p.Vr),
+                (Dphi.p.Vph*U.p.Bph + U.p.Vph*Dphi.p.Bph) - (Dphi.p.Bph*U.p.Vph + U.p.Bph*Dphi.p.Vph),
+                (Dtheta.p.Vth*U.p.Bth + U.p.Vth*Dtheta.p.Bth) - (Dtheta.p.Bth*U.p.Vth + U.p.Bth*Dtheta.p.Vth)};
+
     double p = U.p.Vr*Dr.p.P + U.p.Vph*Dphi.p.P + U.p.Vth*Dtheta.p.P;
     double v = Dr.p.Vr + Dphi.p.Vph + Dtheta.p.Vth;
     double P = p - (-gamma*U.p.P*v);
@@ -42,9 +46,9 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
     res.p.Vr = V.r;
     res.p.Vph = V.ph;
     res.p.Vth = V.th;
-    res.p.Br  = 0;
-    res.p.Bph = 0;
-    res.p.Bth = 0;
+    res.p.Br  = B.r;
+    res.p.Bph = B.ph;
+    res.p.Bth = B.th;
     res.p.P = P;
     return res;
 }
