@@ -1,13 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include <algorithm>
 #include <cmath>
-#include <sstream>
 #include "src/Graphics.h"
-#include "src/Grid.h"
 #include "src/Simulation.h"
 #include "src/Constants.h"
 #include "src/ReadData.h"
-// dU/dt = a*dU/dx
 
 double* getDensity(){
     double *data = nullptr; int dataSize = 0;
@@ -35,12 +32,39 @@ double* getVelocity(){
     return velocity;
 }
 
+double* getTemperature(){
+    double *data = nullptr; int dataSize = 0;
+    ReadData reader("../data/bnd.nc");
+    reader.readData("T", &data, &dataSize);
+    auto *temperature = new double [180];
+    int index = 0;
+    for(int i=0; i<180; i++){
+        temperature[index++] = data[30+60*i];
+    }
+    free(data);
+    return temperature;
+}
+
+double* getMagneticField(){
+    double *data = nullptr; int dataSize = 0;
+    ReadData reader("../data/bnd.nc");
+    reader.readData("B1", &data, &dataSize);
+    auto *magneticField = new double [180];
+    int index = 0;
+    for(int i=0; i<180; i++){
+        magneticField[index++] = data[30+60*i];
+    }
+    free(data);
+    return magneticField;
+}
+
 
 int main()
 {
-    double *densities= getDensity();
-    double *vels= getVelocity();
-
+    double *densities = getDensity();
+    double *vels = getVelocity();
+    double *temperature = getTemperature();
+    double *magneticField = getMagneticField();
 
     double time=0;
     bool paused=false;
@@ -50,11 +74,11 @@ int main()
     sf::RenderWindow window(sf::VideoMode(1300, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
     window.setActive(true);
     window.setFramerateLimit(60);
-    //Grid grid(70,70);
+
     SphericalGrid grid(SIZE_R,SIZE_PH,SIZE_TH,MIN_RADIUS,MAX_RADIUS,M_PI/3);
     Simulation simulation(grid);
     InitialConditions(grid);
-//grid.Fill(10);
+
     sf::View w;
     w = window.getDefaultView();
     w.setCenter(0, 0);
@@ -98,7 +122,7 @@ int main()
             for (int i = 0; i < 1; i++)
             {
                 simulation.RKIntegrator(dt,time);
-                ApplyBoundaryConditions(grid,time,densities,vels);
+                ApplyBoundaryConditions(grid,time,densities, vels, temperature, magneticField);
 
             }
 
