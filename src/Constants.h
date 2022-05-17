@@ -13,7 +13,7 @@
 
 #define SIZE_R 90
 #define SIZE_PH 180
-#define SIZE_TH 1
+#define SIZE_TH 30
 #define MIN_RADIUS 1.497131e10
 #define MAX_RADIUS 2.28e11
 #define COLOR_SCHEME 2

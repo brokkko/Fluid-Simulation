@@ -68,7 +68,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
 
     auto mPos=sf::Vector2i (window.mapPixelToCoords( sf::Mouse::getPosition(window)));
 
-    auto mpos = toSpherical(sf::Vector3f{0,(float)mPos.x,-(float)mPos.y});
+    auto mpos = toSpherical(sf::Vector3f{0,-(float)mPos.x,-(float)mPos.y});
 
     mpos.x=clamp( ((unsigned int)((mpos.x-inner)/CellRSize)),(unsigned int)0,grid.getSizeR());
     mpos.y=(int)((mpos.y+M_PI)/(2*M_PI)*grid.getSizePhi());
@@ -85,9 +85,9 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             //double displayvar =U.c.m/U.volume;
             r.setFillColor(toColor(displayvar,-radius*lowerbound,radius));
 
-            r.setRotation((float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
+            r.setRotation(-(float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
             r.setSize(sf::Vector2f(std::ceil(CellRSize),std::ceil(2+2*M_PI*(CellRSize*x+inner)/grid.getSizePhi())));
-            r.setPosition(sf::Vector2f((inner+x*CellRSize)*std::cos(grid.getPhiFromIndex(y)),(inner+x*CellRSize)*std::sin(grid.getPhiFromIndex(y))));
+            r.setPosition(sf::Vector2f(-(inner+x*CellRSize)*std::cos(grid.getPhiFromIndex(y)),(inner+x*CellRSize)*std::sin(grid.getPhiFromIndex(y))));
             window.draw(r);
             if (y==mpos.y)
                 varr[x] = sf::Vertex(sf::Vector2f(float(x* CellRSize)- (float)windowsizeX/2,(float)windowsizeY/2+graph_offset-graph_h/2- grid.getCell(x,y,0).p.rho * graphm ), sf::Color::Magenta);

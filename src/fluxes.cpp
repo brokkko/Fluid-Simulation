@@ -5,7 +5,7 @@
 Cell FluxR(Cell U)
 {
     double B2 = U.p.Br * U.p.Br + U.p.Bph * U.p.Bph + U.p.Bth * U.p.Bth;
-    double Pt = U.p.P + B2/(2*mu);
+    double Pt = U.p.P + B2/2;
     double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
     res.c.m =    U.p.Vr * U.p.rho;
@@ -16,14 +16,14 @@ Cell FluxR(Cell U)
     res.c.Br = 0.0;
     res.c.Bph = U.p.Vr*U.p.Bph - U.p.Br * U.p.Vph;
     res.c.Bth = U.p.Vr*U.p.Bth - U.p.Br * U.p.Vth;
-    res.c.E = ((U.c.E/U.volume + U.p.P)*U.p.Vr - U.p.Br*vB);
+    res.c.E = ((U.c.E/U.volume + Pt)*U.p.Vr - U.p.Br*vB);
     return res;
 }
 
 Cell FluxPhi(Cell U)
 {
     double B2 = U.p.Br * U.p.Br + U.p.Bph * U.p.Bph + U.p.Bth * U.p.Bth;
-    double Pt = U.p.P + B2/(2*mu);
+    double Pt = U.p.P + B2/2;
     double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
     res.c.m = U.p.Vph * U.p.rho;
@@ -35,7 +35,7 @@ Cell FluxPhi(Cell U)
     res.c.Br  = U.p.Vph * U.p.Br  - U.p.Bph * U.p.Vr;
     res.c.Bph = 0.0;
     res.c.Bth = U.p.Vph * U.p.Bth - U.p.Bph * U.p.Vth;
-    res.c.E = ((U.c.E/U.volume + U.p.P) * U.p.Vph - U.p.Bph * vB);
+    res.c.E = ((U.c.E/U.volume + Pt) * U.p.Vph - U.p.Bph * vB);
     //res.c.E = (U.c.E + U.p.P)*U.p.Vph - U.p.Bph*vB;
     return res;
 }
@@ -44,19 +44,19 @@ Cell FluxPhi(Cell U)
 Cell FluxTheta(Cell U)
 {
     double B2 = U.p.Br * U.p.Br + U.p.Bph * U.p.Bph + U.p.Bth * U.p.Bth;
-    double Pt = U.p.P + B2/(2*mu);
+    double Pt = U.p.P + B2/2;
     double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
-    res.c.m = U.c.Mth;
+    res.c.m =  U.p.Vth * U.p.rho;
     res.c.Mr  = U.p.Vr  * U.p.Vth * U.p.rho - U.p.Bth * U.p.Br ;
     res.c.Mph = U.p.Vph * U.p.Vth * U.p.rho - U.p.Bth * U.p.Bph;
     res.c.Mth = (U.p.Vth * U.p.Vth * U.p.rho - U.p.Bth * U.p.Bth  /* + Pt*/);
 
     //n - th t - r b -ph
-    res.c.Br  = U.p.Vth * U.p.Br  - U.p.Vth * U.p.Vr;
-    res.c.Bph = U.p.Vth * U.p.Bph - U.p.Vth * U.p.Vph;
+    res.c.Br  = U.p.Vth * U.p.Br  - U.p.Bth * U.p.Vr;
+    res.c.Bph = U.p.Vth * U.p.Bph - U.p.Bth * U.p.Vph;
     res.c.Bth = 0.0;
-    res.c.E = (U.c.E/U.volume + U.p.P)*U.p.Vth - U.p.Bth * vB;
+    res.c.E = (U.c.E/U.volume + Pt)*U.p.Vth - U.p.Bth * vB;
     return res;
 }
 
