@@ -47,7 +47,7 @@ int main()
     bool shift =false;
     double upperbound[9] ={small_rho*20,1000000,1,1,1,1,1,1,1};
     int currentmode = 0;
-    sf::RenderWindow window(sf::VideoMode(700, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
+    sf::RenderWindow window(sf::VideoMode(1300, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
     window.setActive(true);
     window.setFramerateLimit(60);
     //Grid grid(70,70);

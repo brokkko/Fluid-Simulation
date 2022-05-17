@@ -63,6 +63,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     unsigned int windowsizeX = window.getSize().x;
     unsigned int windowsizeY = window.getSize().y;
     double maxRadius = std::min((double)windowsizeX/2,(double)windowsizeY/2);
+    int center =(double)windowsizeX/2 - maxRadius;
     double inner = grid.getMinRadius()/grid.getMaxRadius()*maxRadius;
     double CellRSize= (maxRadius-inner) / grid.getSizeR();
 
@@ -79,15 +80,18 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
 
             Cell U =grid.getCell(x,y,0);
 
-            double displayvar=reinterpret_cast<double*>(&U.p)[mode]*U.r*U.r/pow(grid.getRFromIndex(grid.getSizeR()),2);
+            double displayvar=reinterpret_cast<double*>(&U.p)[mode];//*U.r*U.r/pow(grid.getRFromIndex(grid.getSizeR()),2);
             int lowerbound=0;
             if (mode >0 && mode < 7) lowerbound = 1;
             //double displayvar =U.c.m/U.volume;
-            r.setFillColor(toColor(displayvar,-radius*lowerbound,radius));
+            if(mode ==1)
+                r.setFillColor(toColor(displayvar,300000,600000));
+            else
+                r.setFillColor(toColor(displayvar,-radius*lowerbound,radius));
 
             r.setRotation(-(float)(grid.getPhiFromIndex(y)+grid.getPhiFromIndex(y+1))/(4*M_PI)*360);
-            r.setSize(sf::Vector2f(std::ceil(CellRSize),std::ceil(2+2*M_PI*(CellRSize*x+inner)/grid.getSizePhi())));
-            r.setPosition(sf::Vector2f(-(inner+x*CellRSize)*std::cos(grid.getPhiFromIndex(y)),(inner+x*CellRSize)*std::sin(grid.getPhiFromIndex(y))));
+            r.setSize(sf::Vector2f(std::ceil(CellRSize),std::ceil(2*M_PI*(CellRSize*x+inner)/grid.getSizePhi())));
+            r.setPosition(sf::Vector2f(-center-(inner+x*CellRSize)*std::cos(grid.getPhiFromIndex(y)),(inner+x*CellRSize)*std::sin(grid.getPhiFromIndex(y))));
             window.draw(r);
             if (y==mpos.y)
                 varr[x] = sf::Vertex(sf::Vector2f(float(x* CellRSize)- (float)windowsizeX/2,(float)windowsizeY/2+graph_offset-graph_h/2- grid.getCell(x,y,0).p.rho * graphm ), sf::Color::Magenta);

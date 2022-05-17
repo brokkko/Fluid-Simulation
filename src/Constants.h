@@ -8,12 +8,12 @@
 
 #define ctg(x) std::cos(x)/std::sin(x)
 #define clamp(x, y, z) std::max(y, std::min(x, z))
-#define DT 4000
+#define DT 2000
 #define CFL 0.4
 
-#define SIZE_R 90
+#define SIZE_R 30
 #define SIZE_PH 180
-#define SIZE_TH 30
+#define SIZE_TH 15
 #define MIN_RADIUS 1.497131e10
 #define MAX_RADIUS 2.28e11
 #define COLOR_SCHEME 2

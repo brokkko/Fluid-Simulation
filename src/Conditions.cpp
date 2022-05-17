@@ -64,7 +64,7 @@ for(int th=0;th<grid.getSizeTheta();th++) {
         double Bx = 0.000;
         double By = 0.000;
         double Bz = 0.000;
-        double T = 10;
+        double T = 500000;
         //double rho=small_rho;
         double rho = dens[(r-x + r) % grid.getSizePhi()];
         if (x > 5 && x < 15) {
