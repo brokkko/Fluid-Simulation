@@ -8,6 +8,6 @@
 #include "SphericalGrid.h"
 
 void InitialConditions(SphericalGrid& grid);
-void ApplyBoundaryConditions(SphericalGrid& grid,double t,double* dens,double* vels);
+void ApplyBoundaryConditions(SphericalGrid& grid,double t,double* dens,double* vels, double *temperature, double *magneticField);
 
 #endif //FLUID_SIMULATION_CONDITIONS_H
