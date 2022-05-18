@@ -18,6 +18,9 @@ double CalculateDT(SphericalGrid &grid) {
 
                 auto curr = grid.getCell(r, phi, theta);
                 double gpr=gamma * curr.p.P;
+                if(std::isnan(curr.p.P)){
+                    std::cout << "HERE" << std::endl;
+                }
                 double Bmag2  = curr.p.Br*curr.p.Br + curr.p.Bph*curr.p.Bph+curr.p.Bth*curr.p.Bth;
                 double Cf = gpr - Bmag2;
                 double Cf2 = gamma * curr.p.P + Bmag2;

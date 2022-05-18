@@ -3,7 +3,7 @@
 
 #define ctg(x) std::cos(x)/std::sin(x)
 #define clamp(x, y, z) std::max(y, std::min(x, z))
-#define DT 2000
+#define DT 1000
 #define CFL 0.4
 
 #define SIZE_R 30
