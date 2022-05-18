@@ -25,7 +25,7 @@ public:
     unsigned int getSizeTheta() const {return sizeTheta;}
     double getRFromIndex(unsigned int R) const {return minRadius + (maxRadius-minRadius)/sizeR * (R+0.5);}
     double getPhiFromIndex(unsigned int Phi) const {return ((double)Phi+0.5)/sizePhi*2*M_PI;}
-    double getThetaFromIndex(unsigned int Theta) const {return M_PI_2-maxPolarAngle+((double)Theta+0.5)/sizePhi*2*maxPolarAngle;}
+    double getThetaFromIndex(unsigned int Theta) const {return M_PI_2-maxPolarAngle + (2 * Theta + 1)*(maxPolarAngle/sizeTheta);}
     void UpdatePrim();
     void UpdateCons();
     static SphericalGrid copyGrid(SphericalGrid& grid);

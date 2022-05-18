@@ -74,6 +74,30 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     mpos.x=clamp( ((unsigned int)((mpos.x-inner)/CellRSize)),(unsigned int)0,grid.getSizeR());
     mpos.y=(int)((mpos.y+M_PI)/(2*M_PI)*grid.getSizePhi());
 
+    for (int y = 0; y < grid.getSizeTheta(); y++){
+        for (int x = 0; x < grid.getSizeR(); x++){
+            double radius=upperbound;
+
+            Cell U =grid.getCell(x,0,y);
+
+            double displayvar=reinterpret_cast<double*>(&U.p)[mode];//*U.r*U.r/pow(grid.getRFromIndex(grid.getSizeR()),2);
+            int lowerbound=0;
+            if (mode >0 && mode < 7) lowerbound = 1;
+            //double displayvar =U.c.m/U.volume;
+            if(mode ==1)
+                r.setFillColor(toColor(displayvar,300000,600000));
+            else
+                r.setFillColor(toColor(displayvar,-radius*lowerbound,radius));
+
+            r.setRotation((float)(grid.getThetaFromIndex(y)+grid.getThetaFromIndex(y+1))/(4*M_PI)*360-90);
+            r.setSize(sf::Vector2f(std::ceil(CellRSize),2*std::ceil(M_PI*(CellRSize*x+inner)/3/grid.getSizeTheta())));
+            r.setPosition(sf::Vector2f(center+(inner+x*CellRSize)*std::cos(grid.getThetaFromIndex(y)-M_PI_2),(inner+x*CellRSize)*std::sin(grid.getThetaFromIndex(y)-M_PI_2)));
+            window.draw(r);
+        }
+    }
+
+
+
     for (int y = 0; y < grid.getSizePhi(); y++){
         for (int x = 0; x < grid.getSizeR(); x++){
             double radius=upperbound;
