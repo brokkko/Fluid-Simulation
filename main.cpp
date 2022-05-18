@@ -10,57 +10,33 @@ double* getDensity(){
     double *data = nullptr; int dataSize = 0;
     ReadData reader("../data/bnd.nc");
     reader.readData("D", &data, &dataSize);
-    auto *density = new double [180];
-    int index = 0;
-    for(int i=0; i<180; i++){
-        density[index++] = data[30+60*i];
-    }
-    free(data);
-    return density;
+    return data;
 }
 
 double* getVelocity(){
     double *data = nullptr; int dataSize = 0;
     ReadData reader("../data/bnd.nc");
     reader.readData("V1", &data, &dataSize);
-    auto *velocity = new double [180];
-    int index = 0;
-    for(int i=0; i<180; i++){
-        velocity[index++] = data[30+60*i];
-    }
-    free(data);
-    return velocity;
+    return data;
 }
 
 double* getTemperature(){
     double *data = nullptr; int dataSize = 0;
     ReadData reader("../data/bnd.nc");
     reader.readData("T", &data, &dataSize);
-    auto *temperature = new double [180];
-    int index = 0;
-    for(int i=0; i<180; i++){
-        temperature[index++] = data[30+60*i];
-    }
-    free(data);
-    return temperature;
+    return data;
 }
 
 double* getMagneticField(){
     double *data = nullptr; int dataSize = 0;
     ReadData reader("../data/bnd.nc");
     reader.readData("B1", &data, &dataSize);
-    auto *magneticField = new double [180];
-    int index = 0;
-    for(int i=0; i<180; i++){
-        magneticField[index++] = data[30+60*i];
-    }
-    free(data);
-    return magneticField;
+    return data;
 }
 
 
-int main()
-{
+int main(){
+
     double *densities = getDensity();
     double *vels = getVelocity();
     double *temperature = getTemperature();

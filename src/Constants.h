@@ -7,8 +7,8 @@
 #define CFL 0.4
 
 #define SIZE_R 30
-#define SIZE_PH 180
-#define SIZE_TH 15
+#define SIZE_PH 60
+#define SIZE_TH 60
 #define MIN_RADIUS 1.497131e10
 #define MAX_RADIUS 2.28e11
 #define COLOR_SCHEME 1

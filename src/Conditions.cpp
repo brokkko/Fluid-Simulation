@@ -38,19 +38,25 @@ void InitialConditions(SphericalGrid& grid) {
 
 
 void ApplyBoundaryConditions(SphericalGrid& grid, double t, double* dens,double* vels, double *temperature, double *magneticField){
-    int r = (int) ((t/SOLAR_ROTATION)*grid.getSizePhi());
+    //std::cout << "IN COND" << std::endl;
+    int r = (int) ((t/SOLAR_ROTATION)*180);
     for(int th=0;th<grid.getSizeTheta();th++) {
+        //std::cout << th << std::endl;
         for (int x = 0; x < grid.getSizePhi(); x++) {
             //double vx=0;
-            double vx = vels[(r-x + r) % grid.getSizePhi()];
+            // (r-x + r) % grid.getSizePhi()
+            int row = (int)(180 + r - (double)x*180/grid.getSizePhi()) % 180;
+            int col = (int)((double)th*60/grid.getSizeTheta()) % 60;
+            double vx = vels[60*row + col];
+            //std::cerr << x << " " << 60*row + col << std::endl;
             double vy = 0;
             double vz = 0;
-            double Bx = magneticField[(r-x + r) % grid.getSizePhi()];
+            double Bx = magneticField[60*row + col];
             double By = 0.000;
             double Bz = 0.000;
-            double T = temperature[(r-x + r) % grid.getSizePhi()];
+            double T = temperature[60*row + col];
             //double rho=small_rho;
-            double rho = dens[(r-x + r) % grid.getSizePhi()];
+            double rho = dens[60*row + col];
 
             double E = 2 * rho * m_div_k * T / (gamma - 1)
                        + rho * (vx * vx + vy * vy + vz * vz) / 2
