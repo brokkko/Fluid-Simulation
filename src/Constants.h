@@ -19,7 +19,7 @@
 #define small_P 1e-20
 
 #define small_rho 1e-20
-#define G 0 //6.670e-11
+#define G 6.670e-11
 #define gamma 5./3
 #define A_SPEED 1000000
 //#define USE_CONST_A
