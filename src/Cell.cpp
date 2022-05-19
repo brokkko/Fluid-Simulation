@@ -26,10 +26,17 @@ PrimitiveVector PrimitiveVector::rotate(double phi,double theta)
     res.Vr = Vr*std::cos(phi) - Vph*std::sin(phi);
     res.Vph =Vr*std::sin(phi) + Vph*std::cos(phi);
 
-    res.Br = Br*std::cos(phi) - Bth*std::sin(phi);
-    res.Bth =Br*std::sin(phi) + Bth*std::cos(phi);
+    res.Br = Br*std::cos(phi) - Bph*std::sin(phi);
+    res.Bph =Br*std::sin(phi) + Bph*std::cos(phi);
 
-    return res;
+    PrimitiveVector res2 = res;
+    res2.Vr = res.Vr*std::cos(theta) - res.Vth*std::sin(theta);
+    res2.Vth =res.Vr*std::sin(theta) + res.Vth*std::cos(theta);
+
+    res2.Br = res.Br*std::cos(theta) - res.Bth*std::sin(theta);
+    res2.Bth =res.Br*std::sin(theta) + res.Bth*std::cos(theta);
+
+    return res2;
 }
 ConservativeVector ConservativeVector::rotate(double phi,double theta)
 {
@@ -37,9 +44,17 @@ ConservativeVector ConservativeVector::rotate(double phi,double theta)
     res.Mr = Mr*std::cos(phi) - Mph*std::sin(phi);
     res.Mph =Mr*std::sin(phi) + Mph*std::cos(phi);
 
-    res.Br = Br*std::cos(phi) - Bth*std::sin(phi);
-    res.Bth =Br*std::sin(phi) + Bth*std::cos(phi);
-    return res;
+    res.Br = Br*std::cos(phi) - Bph*std::sin(phi);
+    res.Bph =Br*std::sin(phi) + Bph*std::cos(phi);
+
+    ConservativeVector res2 = res;
+    res2.Mr =  res.Mr*std::cos(theta) - res.Mth*std::sin(theta);
+    res2.Mth = res.Mr*std::sin(theta) + res.Mth*std::cos(theta);
+
+    res2.Br =  res.Br*std::cos(theta) - res.Bth*std::sin(theta);
+    res2.Bth = res.Br*std::sin(theta) + res.Bth*std::cos(theta);
+
+    return res2;
 }
 
 

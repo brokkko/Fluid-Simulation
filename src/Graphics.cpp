@@ -84,6 +84,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             int lowerbound=0;
             if (mode >0 && mode < 7) lowerbound = 1;
             //double displayvar =U.c.m/U.volume;
+            if(mode ==0) displayvar = displayvar*U.r*U.r/pow(grid.getRFromIndex(grid.getSizeR()),2);
             if(mode ==1)
                 r.setFillColor(toColor(displayvar,300000,600000));
             else
@@ -108,6 +109,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             int lowerbound=0;
             if (mode >0 && mode < 7) lowerbound = 1;
             //double displayvar =U.c.m/U.volume;
+            if(mode ==0) displayvar = displayvar*U.r*U.r/pow(grid.getRFromIndex(grid.getSizeR()),2);
             if(mode ==1)
                 r.setFillColor(toColor(displayvar,300000,600000));
             else

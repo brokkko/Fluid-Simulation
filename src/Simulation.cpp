@@ -113,7 +113,7 @@ void ApplyFluxes(std::tuple<SphericalGrid &, SphericalGrid &, SphericalGrid &> f
                         (fluxR.getCell(r + 1, phi, theta).c - fluxR.getCell(r, phi, theta).c) // dr
                         + (fluxPhi.getCell(r, phi + 1, theta).c.rotate(dphi/2,0) - fluxPhi.getCell(r, phi, theta).c.rotate(-dphi/2,0)) //
                           //(dphi * grid.getRFromIndex(r))
-                        + (fluxTheta.getCell(r, phi, theta + 1).c - fluxTheta.getCell(r, phi, theta).c) //
+                        + (fluxTheta.getCell(r, phi, theta + 1).c.rotate(0,dtheta/2) - fluxTheta.getCell(r, phi, theta).c.rotate(0,-dtheta/2)) //
                           //(dtheta * grid.getRFromIndex(r))
                 );
             }

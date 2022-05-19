@@ -105,9 +105,13 @@ void CalculateFlux(std::tuple<SphericalGrid&,SphericalGrid&,SphericalGrid&> out,
                 auto uR_th = in.getCell(r,phi,theta)   - 0.5 * Dtheta;
 
                 double dphi=M_PI/in.getSizePhi();
+                double dtheta =(in.getThetaFromIndex(1)-in.getThetaFromIndex(0))/2;
 
                 uL_ph.p = uL_ph.p.rotate(dphi,0);
                 uR_ph.p = uR_ph.p.rotate(-dphi,0);
+
+                uL_th.p = uL_th.p.rotate(0,dtheta);
+                uR_th.p = uR_th.p.rotate(0,-dtheta);
 
                 uL_r.UpdateCons();
                 uR_r.UpdateCons();
