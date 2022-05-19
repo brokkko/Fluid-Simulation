@@ -102,7 +102,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
         for (int x = 0; x < grid.getSizeR(); x++){
             double radius=upperbound;
 
-            Cell U =grid.getCell(x,y,0);
+            Cell U =grid.getCell(x,y,grid.getSizeTheta()/2);
 
             double displayvar=reinterpret_cast<double*>(&U.p)[mode];//*U.r*U.r/pow(grid.getRFromIndex(grid.getSizeR()),2);
             int lowerbound=0;
