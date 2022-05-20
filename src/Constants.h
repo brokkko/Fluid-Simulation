@@ -3,16 +3,16 @@
 
 #define ctg(x) std::cos(x)/std::sin(x)
 #define clamp(x, y, z) std::max(y, std::min(x, z))
-#define DT 1000
+#define DT 5000
 #define CFL 0.4
-
-#define SIZE_R 30
+#define DATA "../data/bnd.nc"
+#define SIZE_R 60
 #define SIZE_PH 60
-#define SIZE_TH 60
+#define SIZE_TH 30
 #define MIN_RADIUS 1.497131e10
 #define MAX_RADIUS 2.28e11
 #define COLOR_SCHEME 1
-#define mu 1 //1.2566e-6
+#define mu 1.2566e-6
 #define m_div_k 8249.805773
 #define Ms 1.991e30
 #define SOLAR_ROTATION 2114208

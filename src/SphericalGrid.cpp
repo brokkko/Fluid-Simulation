@@ -42,7 +42,13 @@ void SphericalGrid::UpdatePrim()
 {
     for(int i=0;i<sizeR*sizePhi*sizeTheta;i++)
     {
-        mesh[i].UpdatePrim();
+        auto v=mesh[i].UpdatePrim();
+        if(v!=0)
+        {
+//#ifdef PRINT_NEG
+          // std::cout<< "at "<<i<<" : "<<v<<"\n";
+//#endif
+        }
     }
 }
 void SphericalGrid::UpdateCons()

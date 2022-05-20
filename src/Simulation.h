@@ -11,14 +11,16 @@
 class Simulation {
     SphericalGrid &grid;
     SphericalGrid k = SphericalGrid::copyGrid(grid);
+    int step;
+    int order[9] = {0,1,2,1,2,0,2,0,1};
+    SphericalGrid flux = SphericalGrid::copyGrid(grid);
+    SphericalGrid grad = SphericalGrid::copyGrid(grid);
 
-    SphericalGrid fluxR = SphericalGrid::copyGrid(grid);
-    SphericalGrid fluxPhi = SphericalGrid::copyGrid(grid);
-    SphericalGrid fluxTheta = SphericalGrid::copyGrid(grid);
+    double *densities;
+    double *vels;
+    double *temperature;
+    double *magneticField;
 
-    SphericalGrid DR = SphericalGrid::copyGrid(grid);
-    SphericalGrid DPhi = SphericalGrid::copyGrid(grid);
-    SphericalGrid DTheta = SphericalGrid::copyGrid(grid);
 public:
     Simulation(SphericalGrid &grid);
     void RKIntegrator(double &dt, double &t);

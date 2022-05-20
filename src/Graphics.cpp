@@ -69,7 +69,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
 
     auto mPos=sf::Vector2i (window.mapPixelToCoords( sf::Mouse::getPosition(window)));
 
-    auto mpos = toSpherical(sf::Vector3f{0,-(float)mPos.x,-(float)mPos.y});
+    auto mpos = toSpherical(sf::Vector3f{0,-(float)mPos.x-center,-(float)mPos.y});
 
     mpos.x=clamp( ((unsigned int)((mpos.x-inner)/CellRSize)),(unsigned int)0,grid.getSizeR());
     mpos.y=(int)((mpos.y+M_PI)/(2*M_PI)*grid.getSizePhi());
@@ -126,13 +126,21 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
     varry[y] = sf::Vertex(sf::Vector2f(float(y* CellRSize),(float)windowsizeY/2+graph_offset-graph_h/2- grid.getCell(mpos.x,y,0).p.rho * graphm ), sf::Color::Magenta);
     }
 
+
+    sf::CircleShape sun(10);
+    sun.setPosition(sf::Vector2f(-center,0));
+    sun.setOrigin(10,10);
+    sun.setFillColor(sf::Color::Yellow);
+    window.draw(sun);
+    sun.setPosition(sf::Vector2f(center,0));
+    window.draw(sun);
     window.draw(varr, grid.getSizeR(), sf::LinesStrip);
     window.draw(varry, grid.getSizePhi(), sf::LinesStrip);
 
 
 
     std::stringstream ss;
-    ss<<grid.getCell(mpos.x,mpos.y,0).p.rho;
+    ss<<grid.getCell(mpos.x,mpos.y,0).p.P;
     t.setString(ss.str());
     t.setPosition(mPos.x,mPos.y+20);
     window.draw(t);

@@ -6,33 +6,7 @@
 #include "src/Constants.h"
 #include "src/ReadData.h"
 
-double* getDensity(){
-    double *data = nullptr; int dataSize = 0;
-    ReadData reader("../data/bnd.nc");
-    reader.readData("D", &data, &dataSize);
-    return data;
-}
 
-double* getVelocity(){
-    double *data = nullptr; int dataSize = 0;
-    ReadData reader("../data/bnd.nc");
-    reader.readData("V1", &data, &dataSize);
-    return data;
-}
-
-double* getTemperature(){
-    double *data = nullptr; int dataSize = 0;
-    ReadData reader("../data/bnd.nc");
-    reader.readData("T", &data, &dataSize);
-    return data;
-}
-
-double* getMagneticField(){
-    double *data = nullptr; int dataSize = 0;
-    ReadData reader("../data/bnd.nc");
-    reader.readData("B1", &data, &dataSize);
-    return data;
-}
 
 
 int main(){
@@ -53,7 +27,7 @@ int main(){
 
     SphericalGrid grid(SIZE_R,SIZE_PH,SIZE_TH,MIN_RADIUS,MAX_RADIUS,M_PI/3);
     Simulation simulation(grid);
-    InitialConditions(grid);
+    InitialConditions(grid,densities,vels,temperature,magneticField);
 
     sf::View w;
     w = window.getDefaultView();
@@ -98,13 +72,11 @@ int main(){
             for (int i = 0; i < 1; i++)
             {
                 simulation.RKIntegrator(dt,time);
-                ApplyBoundaryConditions(grid,time,densities, vels, temperature, magneticField);
+
 
             }
 
         }
-        double sum = 0;
-        double vel = 0;
 
         show(grid, window,t,upperbound[currentmode],currentmode, dt);
 

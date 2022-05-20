@@ -77,7 +77,7 @@ struct Cell
     }
     Cell() { };
 
-    void UpdatePrim();
+    int UpdatePrim();
     void UpdateCons();
 
 

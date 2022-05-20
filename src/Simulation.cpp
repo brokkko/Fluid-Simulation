@@ -19,7 +19,7 @@ double CalculateDT(SphericalGrid &grid) {
                 auto curr = grid.getCell(r, phi, theta);
                 double gpr=gamma * curr.p.P;
                 if(std::isnan(curr.p.P)){
-                    std::cout << "HERE" << std::endl;
+                    //std::cout << "HERE" << std::endl;
                 }
                 double Bmag2  = curr.p.Br*curr.p.Br + curr.p.Bph*curr.p.Bph+curr.p.Bth*curr.p.Bth;
                 double Cf = gpr - Bmag2;
@@ -39,7 +39,7 @@ double CalculateDT(SphericalGrid &grid) {
     return minDT;
 }
 
-void CalculateGradients(std::tuple<SphericalGrid &, SphericalGrid &, SphericalGrid &> grad, SphericalGrid &grid) {
+void CalculateGradients(SphericalGrid & grad, SphericalGrid &grid,int dir) {
     double dr = grid.getRFromIndex(1) - grid.getRFromIndex(0);
     double dphi = (grid.getPhiFromIndex(1) - grid.getPhiFromIndex(0));
     double dtheta = grid.getThetaFromIndex(1) - grid.getThetaFromIndex(0);
@@ -47,49 +47,50 @@ void CalculateGradients(std::tuple<SphericalGrid &, SphericalGrid &, SphericalGr
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
-                auto r1 = grid.getCell(r + 1, phi, theta).p;
-                auto r_1 = grid.getCell(r - 1, phi, theta).p;
-                auto phi1 = grid.getCell(r, phi + 1, theta).p;
-                auto phi_1 = grid.getCell(r, phi - 1, theta).p;
-                auto theta1 = grid.getCell(r, phi, theta + 1).p;
-                auto theta_1 = grid.getCell(r, phi, theta - 1).p;
                 auto curr = grid.getCell(r, phi, theta).p;
-
-                auto Dr = (r1 - r_1) / (2 * dr);
-                auto Dphi = (phi1 - phi_1) / (2 * dphi * grid.getRFromIndex(r));
-                auto Dtheta = (theta1 - theta_1) / (2 * dtheta * grid.getRFromIndex(r));
-
-                /* auto Dr=      (r1     - curr)     / (dr);
-                auto Dphi =   (phi1   - curr)   / (dphi * grid.getRFromIndex(r));
-                auto Dtheta = (theta1 - curr) / (dtheta * grid.getRFromIndex(r));*/
-
-
-                auto rR = (curr - r_1) / nonZeroDenom(r1 - curr);
-                auto rPhi = (curr - phi_1) / nonZeroDenom(phi1 - curr);
-                auto rTheta = (curr - theta_1) / nonZeroDenom(theta1 - curr);
-                std::get<T_R>(grad).getCellRef(r, phi, theta).p = SlopeLim(rR) * Dr;
-                std::get<T_PHI>(grad).getCellRef(r, phi, theta).p = SlopeLim(rPhi) * Dphi;
-                std::get<T_THETA>(grad).getCellRef(r, phi, theta).p = SlopeLim(rTheta) * Dtheta;
+                if (dir==0)
+                {
+                    auto r1 = grid.getCell(r + 1, phi, theta).p;
+                    auto r_1 = grid.getCell(r - 1, phi, theta).p;
+                    auto Dr = (r1 - r_1) / (2 * dr);
+                    auto rR = (curr - r_1) / nonZeroDenom(r1 - curr);
+                    grad.getCellRef(r, phi, theta).p = SlopeLim(rR) * Dr;
+                }
+                else if (dir==1)
+                {
+                    auto phi1 = grid.getCell(r, phi + 1, theta).p;
+                    auto phi_1 = grid.getCell(r, phi - 1, theta).p;
+                    auto Dphi = (phi1 - phi_1) / (2 * dphi * grid.getRFromIndex(r));
+                    auto rPhi = (curr - phi_1) / nonZeroDenom(phi1 - curr);
+                    grad.getCellRef(r, phi, theta).p = SlopeLim(rPhi) * Dphi;
+                }
+                else if (dir ==2 )
+                {
+                    auto theta1 = grid.getCell(r, phi, theta + 1).p;
+                    auto theta_1 = grid.getCell(r, phi, theta - 1).p;
+                    auto Dtheta = (theta1 - theta_1) / (2 * dtheta * grid.getRFromIndex(r));
+                    auto rTheta = (curr - theta_1) / nonZeroDenom(theta1 - curr);
+                    grad.getCellRef(r, phi, theta).p = SlopeLim(rTheta) * Dtheta;
+                }
             }
         }
     }
 }
 
-void PredictorStep(std::tuple<SphericalGrid &, SphericalGrid &, SphericalGrid &> grad, SphericalGrid &out,
-                   SphericalGrid &grid, double dt) {
-    SphericalGrid &DR = std::get<T_R>(grad);
-    SphericalGrid &DPhi = std::get<T_PHI>(grad);
-    SphericalGrid &DTheta = std::get<T_THETA>(grad);
+void PredictorStep(SphericalGrid & grad, SphericalGrid &out, SphericalGrid &grid, double dt,int dir) {
+
+    auto Dr = grad.getCell(0, 0, 0);
+    auto Dtheta = grad.getCell(0, 0, 0);
+    auto Dphi = grad.getCell(0, 0, 0);
+    auto& Ddir =Dr;
+    if (dir == 1) Ddir =Dphi;
+    else if (dir == 2) Ddir =Dtheta;
+
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
                 Cell &c = grid.getCellRef(r, phi, theta);
-                if (r == 30 && phi == 50) {
-                    int a = 0;
-                }
-                auto Dr = DR.getCell(r, phi, theta);
-                auto Dtheta = DTheta.getCell(r, phi, theta);
-                auto Dphi = DPhi.getCell(r, phi, theta);
+                Ddir = grad.getCell(r, phi, theta);
                 out.getCellRef(r, phi, theta) = c - 0.5 * dt * F(Dr, Dtheta, Dphi, c);
 
             }
@@ -97,51 +98,70 @@ void PredictorStep(std::tuple<SphericalGrid &, SphericalGrid &, SphericalGrid &>
     }
 }
 
-void ApplyFluxes(std::tuple<SphericalGrid &, SphericalGrid &, SphericalGrid &> flux, SphericalGrid &grid, double dt) {
+void ApplyFluxes(SphericalGrid &flux, SphericalGrid &grid, double dt,int dir) {
     double dr = grid.getRFromIndex(1) - grid.getRFromIndex(0);
     double dphi = (grid.getPhiFromIndex(1) - grid.getPhiFromIndex(0));
     double dtheta = grid.getThetaFromIndex(1) - grid.getThetaFromIndex(0);
 
-    auto &fluxR = std::get<T_R>(flux);
-    auto &fluxPhi = std::get<T_PHI>(flux);
-    auto &fluxTheta = std::get<T_THETA>(flux);
     for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
         for (int r = 0; r < grid.getSizeR(); r++) {
             for (int phi = 0; phi < grid.getSizePhi(); phi++) {
-                auto &c = grid.getCellRef(r, phi, theta).c;
-                c = c - dt * (
-                        (fluxR.getCell(r + 1, phi, theta).c - fluxR.getCell(r, phi, theta).c) // dr
-                        + (fluxPhi.getCell(r, phi + 1, theta).c.rotate(dphi/2,0) - fluxPhi.getCell(r, phi, theta).c.rotate(-dphi/2,0)) //
-                          //(dphi * grid.getRFromIndex(r))
-                        + (fluxTheta.getCell(r, phi, theta + 1).c.rotate(0,dtheta/2) - fluxTheta.getCell(r, phi, theta).c.rotate(0,-dtheta/2)) //
-                          //(dtheta * grid.getRFromIndex(r))
-                );
+                auto &c = grid.getCellRef(r, phi, theta);
+                auto f= flux.getCell(r, phi, theta);
+                if (dir==0)
+                {
+                    auto f1=flux.getCell(r + 1, phi, theta);
+                    c.c = c.c - dt * ( f1.c*(f1.Sr/c.volume) - f.c*(f.Sr/c.volume));
+                }
+                else if (dir==1)
+                {
+                    auto f1=flux.getCell(r, phi + 1, theta);
+                    c.c = c.c - dt *  (f1.c.rotate(dphi/2,0)*(f1.Sph/c.volume) - f.c.rotate(-dphi/2,0)*(f.Sph/c.volume)); //
+                }
+                else if (dir ==2 )
+                {
+                    auto f1=flux.getCell(r, phi, theta+1);
+                    c.c = c.c - dt *  (f1.c.rotate(0,dtheta/2)*(f1.Sth/c.volume) - f.c.rotate(0,-dtheta/2)*(f.Sth/c.volume)); //
+                }
             }
         }
     }
-
 }
 
-Simulation::Simulation(SphericalGrid &grid):grid(grid)
+Simulation::Simulation(SphericalGrid &grid):grid(grid),step(0)
 {
-
+    densities=getDensity();
+    vels=getVelocity();
+    temperature=getTemperature();
+    magneticField=getMagneticField();
 }
 
 
 void Simulation::RKIntegrator(double &dt, double &t) {
+    grid.UpdatePrim();
+    ApplyBoundaryConditions(grid,t,densities, vels, temperature, magneticField);
     dt = CalculateDT(grid);
     t += dt;
-    //std::cout << CalculateDT(grid) << "                   " << dt << std::endl;
+    //for (int i=0;i<3;i++) {
 
-    std::tuple<SphericalGrid &, SphericalGrid &, SphericalGrid &> flux(fluxR, fluxPhi, fluxTheta);
-    std::tuple<SphericalGrid &, SphericalGrid &, SphericalGrid &> grad(DR, DPhi, DTheta);
+       // grid.UpdatePrim();
+       // ApplyBoundaryConditions(grid,t,densities, vels, temperature, magneticField);
 
-    CalculateGradients(grad, grid);
-    PredictorStep(grad, k, grid, dt);
-    CalculateFlux(flux, k, grad);
+        int dir = order[step];
+        std::cout<<"dir "<<dir<<"\n";
+        step++;
+        if (step == 9) step = 0;
+       // if (dir==2) continue;
+        CalculateGradients(grad, grid, dir);
+        PredictorStep(grad, k, grid, dt, dir);
+        if (dir == 0)
+            CalculateFluxR(flux, k, grad);
+        else if (dir == 1)
+            CalculateFluxPh(flux, k, grad);
+        else if (dir == 2)
+            CalculateFluxTh(flux, k, grad);
+        ApplyFluxes(flux, grid, dt, dir);
 
-    ApplyFluxes(flux, grid, dt);
-    grid.UpdatePrim();
 
-
+   // }
 }

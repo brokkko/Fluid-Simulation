@@ -58,23 +58,25 @@ ConservativeVector ConservativeVector::rotate(double phi,double theta)
 }
 
 
-void Cell::UpdatePrim()
+int Cell::UpdatePrim()
 {
+    int res=0;
     if(c.m<0)
     {
 #if defined(PRINT_NEG)
         std::cout<<"neg Rho\n";
 #endif
-        c.m=small_rho*volume;
+        c.m=small_rho;//*volume;
+        res=1;
     }
-    p.rho = c.m/volume;
+    p.rho = c.m;///volume;
 
-    p.Vr=c.Mr/p.rho/volume;
-    p.Vph=c.Mph/p.rho/volume;
-    p.Vth=c.Mth/p.rho/volume;
-    p.Br=c.Br/volume;
-    p.Bph=c.Bph/volume;
-    p.Bth=c.Bth/volume;
+    p.Vr=c.Mr/p.rho;///volume;
+    p.Vph=c.Mph/p.rho;///volume;
+    p.Vth=c.Mth/p.rho;///volume;
+    p.Br=c.Br;///volume;
+    p.Bph=c.Bph;///volume;
+    p.Bth=c.Bth;///volume;
     double V2 = p.Vr * p.Vr + p.Vph * p.Vph + p.Vth * p.Vth;
     double M2 = c.Mr * c.Mr + c.Mph * c.Mph + c.Mth * c.Mth;
     double B2 = p.Br * p.Br + p.Bph * p.Bph + p.Bth * p.Bth;
@@ -85,31 +87,34 @@ void Cell::UpdatePrim()
         std::cout<<"neg E\n";
 #endif
         c.E = small_P/(gamma-1) + 0.5*(M2/c.m + cB2/mu);
+        res=2;
     }
-    p.P= (gamma - 1) * (c.E/volume - 0.5 * p.rho * V2 - 0.5 * B2/mu);// + 0.5 / mu * B2;
+    p.P= (gamma - 1) * (c.E/*/volume*/ - 0.5 * p.rho * V2 - 0.5 * B2/mu);// + 0.5 / mu * B2;
     if(p.P<0) {
 #if defined(PRINT_NEG)
         std::cout << "neg P\n";
 #endif
         p.P = small_P;
-        c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2/mu) * volume;
+        c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2/mu);// * volume;
+        res=3;
     }
+    return res;
 }
 void Cell::UpdateCons()
 {
-    c.m = p.rho * volume;
-    c.Mr = p.rho * p.Vr * volume;
-    c.Mph = p.rho * p.Vph * volume;
-    c.Mth = p.rho * p.Vth * volume;
-    c.Br = p.Br * volume;
-    c.Bph = p.Bph * volume;
-    c.Bth = p.Bth * volume;
+    c.m = p.rho ;//* volume;
+    c.Mr = p.rho * p.Vr ;//* volume;
+    c.Mph = p.rho * p.Vph ;//* volume;
+    c.Mth = p.rho * p.Vth ;//* volume;
+    c.Br = p.Br ;//* volume;
+    c.Bph = p.Bph ;//* volume;
+    c.Bth = p.Bth ;//* volume;
     double V2 = p.Vr * p.Vr + p.Vph * p.Vph + p.Vth * p.Vth;
     //double M2 = c.Mr * c.Mr + c.Mph * c.Mph + c.Mth * c.Mth;
     double B2 = p.Br * p.Br + p.Bph * p.Bph + p.Bth * p.Bth;
     //double cB2 = c.Br * c.Br + c.Bph * c.Bph + c.Bth * c.Bth;
     //double prs = p.P - 0.5 * B2 / mu;
-    c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2/mu) * volume;
+    c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2/mu) ;//* volume;
 
 }
 
