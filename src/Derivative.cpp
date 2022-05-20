@@ -31,7 +31,7 @@ Cell F(Cell Dr,Cell Dtheta, Cell Dphi, Cell U)
                   -A.r*U.p.Bth - A.th*U.p.Br,
                   A.r*U.p.Bph - A.th*U.p.Br};
 
-    Vector V = V_1 - p_2/(-U.p.rho) + Phi - 1.0/(U.p.rho)*B_3;
+    Vector V = V_1 - p_2/(-U.p.rho) + Phi - 1.0/(U.p.rho*mu)*B_3;
 
     // ------- B --------
     Vector DBdr = { (Dr.p.Vph*U.p.Bth + U.p.Vph*Dr.p.Bth) - (Dr.p.Vth*U.p.Bph + U.p.Vth*Dr.p.Bph),

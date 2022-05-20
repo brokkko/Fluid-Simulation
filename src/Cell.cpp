@@ -84,15 +84,15 @@ void Cell::UpdatePrim()
 #if defined(PRINT_NEG)
         std::cout<<"neg E\n";
 #endif
-        c.E = small_P/(gamma-1) + 0.5*(M2/c.m+cB2);
+        c.E = small_P/(gamma-1) + 0.5*(M2/c.m + cB2/mu);
     }
-    p.P= (gamma - 1) * (c.E/volume - 0.5 * p.rho * V2 - 0.5 * B2);// + 0.5 / mu * B2;
+    p.P= (gamma - 1) * (c.E/volume - 0.5 * p.rho * V2 - 0.5 * B2/mu);// + 0.5 / mu * B2;
     if(p.P<0) {
 #if defined(PRINT_NEG)
         std::cout << "neg P\n";
 #endif
         p.P = small_P;
-        c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2) * volume;
+        c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2/mu) * volume;
     }
 }
 void Cell::UpdateCons()
@@ -105,11 +105,11 @@ void Cell::UpdateCons()
     c.Bph = p.Bph * volume;
     c.Bth = p.Bth * volume;
     double V2 = p.Vr * p.Vr + p.Vph * p.Vph + p.Vth * p.Vth;
-    double M2 = c.Mr * c.Mr + c.Mph * c.Mph + c.Mth * c.Mth;
+    //double M2 = c.Mr * c.Mr + c.Mph * c.Mph + c.Mth * c.Mth;
     double B2 = p.Br * p.Br + p.Bph * p.Bph + p.Bth * p.Bth;
-    double cB2 = c.Br * c.Br + c.Bph * c.Bph + c.Bth * c.Bth;
+    //double cB2 = c.Br * c.Br + c.Bph * c.Bph + c.Bth * c.Bth;
     //double prs = p.P - 0.5 * B2 / mu;
-    c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2) * volume;
+    c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2/mu) * volume;
 
 }
 
