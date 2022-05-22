@@ -86,8 +86,8 @@ void ApplyBoundaryConditions(SphericalGrid& grid, double t, double* dens,double*
             double vx = vels[60*row + col];
             double vy = 0;
             double vz = 0;
-            double Bx =0;// magneticField[60*row + col];
-            double By = 0.000;
+            double Bx = 0;magneticField[60*row + col];
+            double By = 0;magneticField[60*row + col];
             double Bz = 0;magneticField[60*row + col];
             double T = temperature[60*row + col];
             double rho =dens[60*row + col];

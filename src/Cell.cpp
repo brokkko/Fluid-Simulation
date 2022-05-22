@@ -23,36 +23,36 @@ ConservativeVector& ConservativeVector::zeros() {
 PrimitiveVector PrimitiveVector::rotate(double phi,double theta)
 {
     PrimitiveVector res = *this;
-   /*res.Vr = Vr*std::cos(phi) - Vph*std::sin(phi);
+   res.Vr = Vr*std::cos(phi) - Vph*std::sin(phi);
     res.Vph =Vr*std::sin(phi) + Vph*std::cos(phi);
 
     res.Br = Br*std::cos(phi) - Bph*std::sin(phi);
-    res.Bph =Br*std::sin(phi) + Bph*std::cos(phi);*/
+    res.Bph =Br*std::sin(phi) + Bph*std::cos(phi);
 
     PrimitiveVector res2 = res;
-  /*  res2.Vr = res.Vr*std::cos(theta) - res.Vth*std::sin(theta);
+    res2.Vr = res.Vr*std::cos(theta) - res.Vth*std::sin(theta);
     res2.Vth =res.Vr*std::sin(theta) + res.Vth*std::cos(theta);
 
     res2.Br = res.Br*std::cos(theta) - res.Bth*std::sin(theta);
-    res2.Bth =res.Br*std::sin(theta) + res.Bth*std::cos(theta);*/
+    res2.Bth =res.Br*std::sin(theta) + res.Bth*std::cos(theta);
 
     return res2;
 }
 ConservativeVector ConservativeVector::rotate(double phi,double theta)
 {
     ConservativeVector res = *this;
-    /*res.Mr = Mr*std::cos(phi) - Mph*std::sin(phi);
+    res.Mr = Mr*std::cos(phi) - Mph*std::sin(phi);
     res.Mph =Mr*std::sin(phi) + Mph*std::cos(phi);
 
     res.Br = Br*std::cos(phi) - Bph*std::sin(phi);
-    res.Bph =Br*std::sin(phi) + Bph*std::cos(phi);*/
+    res.Bph =Br*std::sin(phi) + Bph*std::cos(phi);
 
     ConservativeVector res2 = res;
-   /* res2.Mr =  res.Mr*std::cos(theta) - res.Mth*std::sin(theta);
+    res2.Mr =  res.Mr*std::cos(theta) - res.Mth*std::sin(theta);
     res2.Mth = res.Mr*std::sin(theta) + res.Mth*std::cos(theta);
 
     res2.Br =  res.Br*std::cos(theta) - res.Bth*std::sin(theta);
-    res2.Bth = res.Br*std::sin(theta) + res.Bth*std::cos(theta);*/
+    res2.Bth = res.Br*std::sin(theta) + res.Bth*std::cos(theta);
 
     return res2;
 }
@@ -92,9 +92,11 @@ int Cell::UpdatePrim()
     p.P= (gamma - 1) * (c.E/*/volume*/ - 0.5 * p.rho * V2 - 0.5 * B2/mu);// + 0.5 / mu * B2;
     if(p.P<0) {
 #if defined(PRINT_NEG)
+        std::cout << p.P<<"\n";
         std::cout << "neg P\n";
 #endif
         p.P = small_P;
+        //p.P=-p.P;
         c.E = (p.P / (gamma - 1) + 0.5 * p.rho * V2 + 0.5 * B2/mu);// * volume;
         res=3;
     }

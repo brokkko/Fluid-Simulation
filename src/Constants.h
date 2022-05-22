@@ -3,12 +3,12 @@
 
 #define ctg(x) std::cos(x)/std::sin(x)
 #define clamp(x, y, z) std::max(y, std::min(x, z))
-#define DT 100000
+#define DT 50000
 #define CFL 0.4
 #define DATA "../data/bnd.nc"
-#define SIZE_R 90
-#define SIZE_PH 180
-#define SIZE_TH 21
+#define SIZE_R 70
+#define SIZE_PH 70
+#define SIZE_TH 15
 #define MIN_RADIUS 1.497131e10
 #define MAX_RADIUS 2.28e11
 #define COLOR_SCHEME 1

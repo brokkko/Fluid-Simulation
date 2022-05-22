@@ -28,7 +28,7 @@ Cell FluxPhi(Cell U)
     Cell res  = U;
     res.c.m = U.p.Vph * U.p.rho;
     res.c.Mr  = (U.p.Vr  * U.p.Vph * U.p.rho  - (U.p.Bph * U.p.Br)/mu);
-    res.c.Mph =(U.p.Vph * U.p.Vph * U.p.rho  - (U.p.Bph * U.p.Bph)/mu + Pt);
+    res.c.Mph = (U.p.Vph * U.p.Vph * U.p.rho   - (U.p.Bph * U.p.Bph)/mu + Pt);
     res.c.Mth = (U.p.Vph * U.p.Vth * U.p.rho  - (U.p.Bph * U.p.Bth)/mu);
 
     //n - ph, t - r b - th
@@ -47,9 +47,9 @@ Cell FluxTheta(Cell U)
     double Pt = U.p.P + B2/(2*mu);
     double vB = U.p.Vr * U.p.Br + U.p.Vph * U.p.Bph + U.p.Vth * U.p.Bth;
     Cell res  = U;
-    res.c.m =  U.p.Vth * U.p.rho;
-    res.c.Mr  = U.p.Vr  * U.p.Vth * U.p.rho - (U.p.Bth * U.p.Br )/mu;
-    res.c.Mph = U.p.Vph * U.p.Vth * U.p.rho - (U.p.Bth * U.p.Bph)/mu;
+    res.c.m   =  U.p.Vth * U.p.rho;
+    res.c.Mr  =  U.p.Vr  * U.p.Vth * U.p.rho - (U.p.Bth * U.p.Br )/mu;
+    res.c.Mph =  U.p.Vph * U.p.Vth * U.p.rho - (U.p.Bth * U.p.Bph)/mu;
     res.c.Mth = (U.p.Vth * U.p.Vth * U.p.rho - (U.p.Bth * U.p.Bth)/mu   + Pt);
 
     //n - th t - r b -ph
