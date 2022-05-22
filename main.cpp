@@ -11,15 +11,10 @@
 
 int main(){
 
-    double *densities = getDensity();
-    double *vels = getVelocity();
-    double *temperature = getTemperature();
-    double *magneticField = getMagneticField();
-
     double time=0;
     bool paused=false;
     bool shift =false;
-    double upperbound[9] ={small_rho*20,1000000,1,1,1,1,1,1,1};
+    double upperbound[9] ={small_rho*20,1000000,1,1,1,1,1,1e-15,1};
     int currentmode = 0;
     sf::RenderWindow window(sf::VideoMode(1300, 700), "wave", sf::Style::Default, sf::ContextSettings(32));
     window.setActive(true);
@@ -27,7 +22,7 @@ int main(){
 
     SphericalGrid grid(SIZE_R,SIZE_PH,SIZE_TH,MIN_RADIUS,MAX_RADIUS,M_PI/3);
     Simulation simulation(grid);
-    InitialConditions(grid,densities,vels,temperature,magneticField);
+
 
     sf::View w;
     w = window.getDefaultView();
@@ -72,11 +67,10 @@ int main(){
             for (int i = 0; i < 1; i++)
             {
                 simulation.RKIntegrator(dt,time);
-
-
             }
 
         }
+
 
         show(grid, window,t,upperbound[currentmode],currentmode, dt);
 

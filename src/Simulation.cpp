@@ -4,7 +4,32 @@
 #include "Simulation.h"
 #include "Constants.h"
 
+double CalculateDT(SphericalGrid& grid){
+    double minDT = DT;
 
+    double dr =     grid.getRFromIndex(1)       - grid.getRFromIndex(0);
+    double dphi =  (grid.getPhiFromIndex(1)     - grid.getPhiFromIndex(0));
+    double dtheta = grid.getThetaFromIndex(1) - grid.getThetaFromIndex(0);
+
+    for (int theta = 0; theta < grid.getSizeTheta(); theta++) {
+        for (int r = 0; r < grid.getSizeR(); r++) {
+            for (int phi = 0; phi < grid.getSizePhi(); phi++) {
+
+                auto curr =   grid.getCell(r,phi,theta);
+
+                double V_r = curr.p.Vr*curr.p.Vr + curr.p.Vth*curr.p.Vth + curr.p.Vph*curr.p.Vph;
+                double minDr = CFL *  (dr / (std::sqrt(gamma*curr.p.P/curr.p.rho) + std::abs(curr.p.Vr)));
+                double minDph = CFL *  (dphi*curr.r / (std::sqrt(gamma*curr.p.P/curr.p.rho) + std::abs(curr.p.Vph)));
+                double minDth = CFL *  (dtheta*curr.r / (std::sqrt(gamma*curr.p.P/curr.p.rho) + std::abs(curr.p.Vth)));
+                minDT = std::min(minDr, std::min(minDph, std::min(minDth, minDT)));
+            }
+        }
+    }
+    return minDT;
+}
+
+
+/*
 double CalculateDT(SphericalGrid &grid) {
     double minDT = DT;
 
@@ -37,7 +62,7 @@ double CalculateDT(SphericalGrid &grid) {
         }
     }
     return minDT;
-}
+}*/
 
 void CalculateGradients(SphericalGrid & grad, SphericalGrid &grid,int dir) {
     double dr = grid.getRFromIndex(1) - grid.getRFromIndex(0);
@@ -79,9 +104,9 @@ void CalculateGradients(SphericalGrid & grad, SphericalGrid &grid,int dir) {
 
 void PredictorStep(SphericalGrid & grad, SphericalGrid &out, SphericalGrid &grid, double dt,int dir) {
 
-    auto Dr = grad.getCell(0, 0, 0);
-    auto Dtheta = grad.getCell(0, 0, 0);
-    auto Dphi = grad.getCell(0, 0, 0);
+    auto Dr = grad.getCell(0, 0, 0).zeros();
+    auto Dtheta = grad.getCell(0, 0, 0).zeros();
+    auto Dphi = grad.getCell(0, 0, 0).zeros();
     auto& Ddir =Dr;
     if (dir == 1) Ddir =Dphi;
     else if (dir == 2) Ddir =Dtheta;
@@ -134,26 +159,34 @@ Simulation::Simulation(SphericalGrid &grid):grid(grid),step(0)
     vels=getVelocity();
     temperature=getTemperature();
     magneticField=getMagneticField();
+    InitialConditions(grid,densities,vels,temperature,magneticField);
+    ApplyBoundaryConditions(grid,0,densities, vels, temperature, magneticField);
 }
 
 
 void Simulation::RKIntegrator(double &dt, double &t) {
-    grid.UpdatePrim();
-    ApplyBoundaryConditions(grid,t,densities, vels, temperature, magneticField);
+    //grid.UpdatePrim();
+
     dt = CalculateDT(grid);
     t += dt;
-    //for (int i=0;i<3;i++) {
+    for (int i=0;i<3;i++) {
 
-       // grid.UpdatePrim();
-       // ApplyBoundaryConditions(grid,t,densities, vels, temperature, magneticField);
+
+        grid.UpdatePrim();
+
+        ApplyBoundaryConditions(grid,t,densities, vels, temperature, magneticField);
 
         int dir = order[step];
         std::cout<<"dir "<<dir<<"\n";
         step++;
         if (step == 9) step = 0;
-       // if (dir==2) continue;
+        //dir=1;
+       // if (dir==1) return;
+
         CalculateGradients(grad, grid, dir);
         PredictorStep(grad, k, grid, dt, dir);
+
+
         if (dir == 0)
             CalculateFluxR(flux, k, grad);
         else if (dir == 1)
@@ -162,6 +195,7 @@ void Simulation::RKIntegrator(double &dt, double &t) {
             CalculateFluxTh(flux, k, grad);
         ApplyFluxes(flux, grid, dt, dir);
 
-
-   // }
+    }
+    grid.UpdatePrim();
+    ApplyBoundaryConditions(grid,t,densities, vels, temperature, magneticField);
 }

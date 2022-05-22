@@ -84,7 +84,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
             int lowerbound=0;
             if (mode >0 && mode < 7) lowerbound = 1;
             //double displayvar =U.c.m/U.volume;
-            if(mode ==0) displayvar = displayvar*U.r*U.r/pow(grid.getRFromIndex(grid.getSizeR()),2);
+            if(mode ==0 || mode == 7) displayvar = displayvar*U.r*U.r/pow(grid.getRFromIndex(grid.getSizeR()),2);
             if(mode ==1)
                 r.setFillColor(toColor(displayvar,300000,600000));
             else
@@ -140,7 +140,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
 
 
     std::stringstream ss;
-    ss<<grid.getCell(mpos.x,mpos.y,0).p.P;
+    ss<<grid.getCell(mpos.x,mpos.y,grid.getSizeTheta()/2).p.P;
     t.setString(ss.str());
     t.setPosition(mPos.x,mPos.y+20);
     window.draw(t);
@@ -161,7 +161,7 @@ void show(SphericalGrid& grid, sf::RenderWindow& window,sf::Text& t,double upper
         }
     }
 
-    std::string names[] ={"RHO","Vx","Vy","Vz","p_Br","p_Bph","p_Bth","c_E","P"};
+    std::string names[] ={"RHO","Vx","Vy","Vz","p_Br","p_Bph","p_Bth","P","m"};
     ss2<<"upperlimit: "<<upperbound << " mode: "<<names[mode] <<" sum: "<<sum <<" mpos: " << mpos.x <<" "<<mpos.y << "  dt: " << dt;
     t.setString(ss2.str());
     t.setPosition(window.mapPixelToCoords( {0,(int)windowsizeY-20}));

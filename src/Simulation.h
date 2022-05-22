@@ -7,12 +7,13 @@
 #include "Derivative.h"
 #include "Conditions.h"
 #include "tvd.h"
-
+#include <SFML/Graphics.hpp>
 class Simulation {
     SphericalGrid &grid;
     SphericalGrid k = SphericalGrid::copyGrid(grid);
     int step;
     int order[9] = {0,1,2,1,2,0,2,0,1};
+   //int order[9] = {0,1,2,1,2,0,1,2};
     SphericalGrid flux = SphericalGrid::copyGrid(grid);
     SphericalGrid grad = SphericalGrid::copyGrid(grid);
 
