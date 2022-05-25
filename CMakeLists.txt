@@ -2,17 +2,22 @@ cmake_minimum_required(VERSION 3.21)
 project(Fluid_Simulation)
 
 set(CMAKE_CXX_STANDARD 20)
-set(netcdf_DIR "D:/Program Files/netCDF 4.8.1/lib/cmake/netCDF")
+#set(CMAKE_CXX_FLAGS "-O3")
+set(netcdf_DIR "C:/netCDF 4.8.1/lib/cmake/netCDF")
+#set(netcdf_DIR "C:/Program Files/netCDF 4.8.1/lib/cmake/netCDF")
 
-include_directories(headers /usr/include D:/SFML/include)
+include_directories(headers /usr/include C:/SFML/include)
 include_directories(${netcdf_DIR}/../../../include)
 link_directories(${netcdf_DIR}/../../../lib GL)
 
-add_executable(Fluid_Simulation main.cpp)
+#set(project_files src/Cell.h src/Cell.cpp src/Grid.h src/Graphics.h src/Simulation.h src/Simulation.cpp src/Graphics.cpp src/Constants.h src/SphericalGrid.cpp src/SphericalGrid.h src/ReadData.h src/ReadData.cpp)
+#set(project_files src/*.cpp src/*.h)
+file(GLOB project_files src/*.cpp src/*.h)
+add_executable(Fluid_Simulation main.cpp ${project_files})
 
 set(OGLLibs  opengl32.lib glu32.lib)
 
-set(SFML_ROOT D:/SFML)
+set(SFML_ROOT C:/SFML)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 find_package(SFML REQUIRED system window graphics network audio)
 
